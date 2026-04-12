@@ -1,6 +1,6 @@
 %%% ploting function
 
-function planet_plot(Mercury_r,Venus_r, Earth_r, Earth_v, Mars_r, Jupiter_r, Saturn_r, Uranus_r,  Neptune_r,  Pluto_r)% Spacecraft_x, Spacescraft_y, Spacecraft_z)
+function planet_plot(Mercury_r,Venus_r, Earth_r, Mars_r, Jupiter_r, Saturn_r, Uranus_r,  Neptune_r,  Pluto_r)% Spacecraft_x, Spacescraft_y, Spacecraft_z)
     clf
     
     
@@ -16,6 +16,6 @@ function planet_plot(Mercury_r,Venus_r, Earth_r, Earth_v, Mars_r, Jupiter_r, Sat
     plot3(Saturn_r(1),Saturn_r(2),Saturn_r(3),"o" ,DisplayName="Saturn")
     plot3(Uranus_r(1),Uranus_r(2),Uranus_r(3),"o" ,DisplayName="Uranus")
     plot3(Neptune_r(1),Neptune_r(2),Neptune_r(3),"o" ,DisplayName="Neptune")
-    plot3(Neptune_r(1),Neptune_r(2),Neptune_r(3),"o" ,DisplayName="Neptune")
+    plot3( Pluto_r(1), Pluto_r(2), Pluto_r(3),"o" ,DisplayName=" Pluto")
     hold off
     legend
