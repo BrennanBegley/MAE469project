@@ -14,10 +14,11 @@ function Mercury_orbit_r=planet_plot(Mercury_r,Mercury_v,Venus_r, Earth_r, Mars_
     TOF=180;
 
     Mercury_orbit_r=universalTOF(sunmucononical,TOF,Mercury_r,Mercury_v)
+
     
     plot3(0,0,0,'oy',DisplayName="Sun") %sun
     hold on
-
+    %plot locations of all the planets
     plot3(Mercury_r(1),Mercury_r(2),Mercury_r(3),"o" ,DisplayName="Mercury")
     plot3(Venus_r(1),Venus_r(2),Venus_r(3),"o" ,DisplayName="Venus")
     plot3(Earth_r(1),Earth_r(2),Earth_r(3),"o" ,DisplayName="Earth")
@@ -27,5 +28,6 @@ function Mercury_orbit_r=planet_plot(Mercury_r,Mercury_v,Venus_r, Earth_r, Mars_
     plot3(Uranus_r(1),Uranus_r(2),Uranus_r(3),"o" ,DisplayName="Uranus")
     plot3(Neptune_r(1),Neptune_r(2),Neptune_r(3),"o" ,DisplayName="Neptune")
     plot3( Pluto_r(1), Pluto_r(2), Pluto_r(3),"o" ,DisplayName=" Pluto")
+
     hold off
     legend

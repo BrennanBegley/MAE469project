@@ -4,7 +4,11 @@
 % a, e, inc, Ω, ω, θ
 
 % *********************************The mu needs to be check for all of the planets ******
-mu = 1;
+sunmucononical = 1;
+SunTUtodays= 58.13; %Days
+SunAU_TUtokm_s= 29.79; %km/s
+AUtoKm= 1.495*10^8; %Km
+
 Mercury = struct( ...
     'a', 0.387099, ...
     'e', 0.205631, ...
@@ -86,29 +90,106 @@ Pluto = struct( ...
     'theta', deg2rad(14.86205), ...
     'mu', 975.500); % km^3/s^2 
 
-J2000epoch=datetime(2000,1,1,11,58,00);
+J2000epoch=juliandate(datetime(2000,1,1,11,58,00));
 dur.Format = 'd';
-test=datetime(2026,12,25,23,12,00)-J2000epoch
-% Calculate the number of days from the J2000 epoch to the test date
-daysElapsed = days(test)
 
 
 
 %% Initial J2000 RV calc
 % Initial R and V vectors of each planet at the J2000 time 
-[mercuryj2000r,mercuryj2000v]=posandvelvector(Mercury,mu);
-[venusj2000r,venusj2000v]=posandvelvector(Venus,mu);
-[earthj2000r,earthj2000v]=posandvelvector(Earth,mu);
-[marsj2000r,marsj2000v]=posandvelvector(Mars,mu);
-[jupiterj2000r,jupiterj2000v]=posandvelvector(Jupiter,mu);
-[saturnj2000r,saturnj2000v]=posandvelvector(Saturn,mu);
-[uranusj2000r,uranusj2000v]=posandvelvector(Uranus,mu);
-[neptunej2000r,neptunej2000v]=posandvelvector(Neptune,mu);
-[plutoj2000r,plutoj2000v]=posandvelvector(Pluto,mu);
+[mercuryj2000r,mercuryj2000v]=posandvelvector(Mercury,sunmucononical);
+[venusj2000r,venusj2000v]=posandvelvector(Venus,sunmucononical);
+[earthj2000r,earthj2000v]=posandvelvector(Earth,sunmucononical);
+[marsj2000r,marsj2000v]=posandvelvector(Mars,sunmucononical);
+[jupiterj2000r,jupiterj2000v]=posandvelvector(Jupiter,sunmucononical);
+[saturnj2000r,saturnj2000v]=posandvelvector(Saturn,sunmucononical);
+[uranusj2000r,uranusj2000v]=posandvelvector(Uranus,sunmucononical);
+[neptunej2000r,neptunej2000v]=posandvelvector(Neptune,sunmucononical);
+[plutoj2000r,plutoj2000v]=posandvelvector(Pluto,sunmucononical);
 
 
 
 
-%% 3d plot 
-% should take in a array of positions 
 
+%% Problem 4 a (ASTRONOMICAL UNITS)
+% Calculating the planets position and velocity vector on December 25, 2026 at 11:12 pm UTC.
+% THE TOF NEEDS TO BE IN SOLAR TU because of the AU units 
+plotdate=juliandate(datetime(2026,12,25,23,12,00));
+promblem4aTOF=(plotdate-J2000epoch)/SunTUtodays;
+
+[Mercuryproblem4ar,Mercuryproblem4av]=universalTOF(sunmucononical,promblem4aTOF,mercuryj2000r,mercuryj2000v);
+[Venusproblem4ar,Venusproblem4av]=universalTOF(sunmucononical,promblem4aTOF,venusj2000r,venusj2000v);
+[Earthproblem4ar,Earthproblem4av]=universalTOF(sunmucononical,promblem4aTOF,earthj2000r,earthj2000v);
+[Marsproblem4ar,Marsproblem4av]=universalTOF(sunmucononical,promblem4aTOF,marsj2000r,marsj2000v);
+[Jupiterproblem4ar,Jupiterproblem4av]=universalTOF(sunmucononical,promblem4aTOF,jupiterj2000r,jupiterj2000v);
+[Saturnproblem4ar,Saturnproblem4av]=universalTOF(sunmucononical,promblem4aTOF,saturnj2000r,saturnj2000v);
+[Uranusproblem4ar,Uranusproblem4av]=universalTOF(sunmucononical,promblem4aTOF,uranusj2000r,uranusj2000v);
+[Neptuneproblem4ar,Neptuneproblem4av]=universalTOF(sunmucononical,promblem4aTOF,neptunej2000r,neptunej2000v);
+[Plutoproblem4ar,Plutoproblem4av]=universalTOF(sunmucononical,promblem4aTOF,plutoj2000r,plutoj2000v);
+
+% calculating the planets orbital elements (specifically the true anomaly)
+[~,~,~,~,~,~,mercurytrueanomproblem4a]=orbitalelementscalc(Mercuryproblem4ar,Mercuryproblem4av,sunmucononical);
+[~,~,~,~,~,~,venustrueanomproblem4a]=orbitalelementscalc(Venusproblem4ar,Venusproblem4av,sunmucononical);
+[~,~,~,~,~,~,earthtrueanomproblem4a]=orbitalelementscalc(Earthproblem4ar,Earthproblem4av,sunmucononical);
+[~,~,~,~,~,~,marstrueanomproblem4a]=orbitalelementscalc(Marsproblem4ar,Marsproblem4av,sunmucononical);
+[~,~,~,~,~,~,jupitertrueanomproblem4a]=orbitalelementscalc(Jupiterproblem4ar,Jupiterproblem4av,sunmucononical);
+[~,~,~,~,~,~,saturntrueanomproblem4a]=orbitalelementscalc(Saturnproblem4ar,Saturnproblem4av,sunmucononical);
+[~,~,~,~,~,~,uranustrueanomproblem4a]=orbitalelementscalc(Uranusproblem4ar,Uranusproblem4av,sunmucononical);
+[~,~,~,~,~,~,neptunetrueanomproblem4a]=orbitalelementscalc(Neptuneproblem4ar,Neptuneproblem4av,sunmucononical);
+[~,~,~,~,~,~,plutotrueanomproblem4a]=orbitalelementscalc(Plutoproblem4ar,Plutoproblem4av,sunmucononical);
+
+% Planet names
+planetNames = ["Mercury"; "Venus"; "Earth"; "Mars"; "Jupiter"; ...
+               "Saturn"; "Uranus"; "Neptune"; "Pluto"];
+
+% Stack position vectors
+R = [
+    Mercuryproblem4ar(:)';
+    Venusproblem4ar(:)';
+    Earthproblem4ar(:)';
+    Marsproblem4ar(:)';
+    Jupiterproblem4ar(:)';
+    Saturnproblem4ar(:)';
+    Uranusproblem4ar(:)';
+    Neptuneproblem4ar(:)';
+    Plutoproblem4ar(:)'
+];
+
+% Stack velocity vectors
+V = [
+    Mercuryproblem4av(:)';
+    Venusproblem4av(:)';
+    Earthproblem4av(:)';
+    Marsproblem4av(:)';
+    Jupiterproblem4av(:)';
+    Saturnproblem4av(:)';
+    Uranusproblem4av(:)';
+    Neptuneproblem4av(:)';
+    Plutoproblem4av(:)'
+];
+
+% True anomalies (convert to degrees)
+trueAnomaly = rad2deg([
+    mercurytrueanomproblem4a;
+    venustrueanomproblem4a;
+    earthtrueanomproblem4a;
+    marstrueanomproblem4a;
+    jupitertrueanomproblem4a;
+    saturntrueanomproblem4a;
+    uranustrueanomproblem4a;
+    neptunetrueanomproblem4a;
+    plutotrueanomproblem4a
+]);
+
+% Create table
+T = table(planetNames, ...
+          R(:,1), R(:,2), R(:,3), ...
+          V(:,1), V(:,2), V(:,3), ...
+          trueAnomaly, ...
+    'VariableNames', {'Planet','rx (AU)','ry (AU)','rz (AU)','vx (AU/TU)','vy (AU/TU)','vz(AU/TU)','True Anomaly (Deg)'});
+
+% Display table
+disp(T)
+
+
+%%
