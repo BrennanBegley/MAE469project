@@ -1,11 +1,5 @@
 %%% ploting function
 
-<<<<<<< Updated upstream
-function planet_plot(Mercury_r,Venus_r, Earth_r, Mars_r, Jupiter_r, Saturn_r, Uranus_r,  Neptune_r,  Pluto_r)% Spacecraft_x, Spacescraft_y, Spacecraft_z)
-    clf
-    
-    
-=======
 function planet_plot(Mercury_r,Mercury_v, Venus_r, Earth_r, Mars_r, Jupiter_r, Saturn_r, Uranus_r,  Neptune_r,  Pluto_r, Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res )% Spacecraft_x, Spacescraft_y, Spacecraft_z)
 mu = 1;
 Mercury = struct( ...
@@ -33,7 +27,6 @@ for i=1:length(TOF)
     [Mercury_orbit_r(:,i),Mercury_orbit_v]=universalTOF(sunmucononical,TOF(i),Mercury_r,Mercury_v);
 end
 
->>>>>>> Stashed changes
     
     plot3(0,0,0,'oy',DisplayName="Sun") %sun
     hold on
@@ -46,13 +39,6 @@ end
     plot3(Saturn_r(1),Saturn_r(2),Saturn_r(3),"o" ,DisplayName="Saturn")
     plot3(Uranus_r(1),Uranus_r(2),Uranus_r(3),"o" ,DisplayName="Uranus")
     plot3(Neptune_r(1),Neptune_r(2),Neptune_r(3),"o" ,DisplayName="Neptune")
-<<<<<<< Updated upstream
     plot3( Pluto_r(1), Pluto_r(2), Pluto_r(3),"o" ,DisplayName=" Pluto")
-=======
-    plot3(Pluto_r(1),Pluto_r(2),Pluto_r(3),"o" ,DisplayName="pluto")
-    
-    %plot orbits
-    plot3(Mercury_orbit_r(1,:),Mercury_orbit_r(2,:),Mercury_orbit_r(3,:))
->>>>>>> Stashed changes
     hold off
     legend
