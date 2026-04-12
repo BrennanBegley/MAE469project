@@ -192,4 +192,8 @@ T = table(planetNames, ...
 disp(T)
 
 
-%%
+%% Display plot of the planets
+Planet_TOF_inital=168; %start of TOF (sun TU)
+Planet_TOF_final=3000; %end of TOF (sun TU)
+Planet_TOF_res=10000; %number of point for the TOF calc
+planet_plot(Mercuryproblem4ar,Mercuryproblem4av,Venusproblem4ar, Venusproblem4av,Earthproblem4ar, Earthproblem4av, Marsproblem4ar, Marsproblem4av,Jupiterproblem4ar,Jupiterproblem4av,Saturnproblem4ar,Saturnproblem4av,Uranusproblem4ar,Uranusproblem4av,Neptuneproblem4ar, Neptuneproblem4av,Plutoproblem4ar, Plutoproblem4av,Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res)
