@@ -1,0 +1,5 @@
+%%% ploting function
+
+function plot(Mercury_r,Venus_r, Venus_v,Earth_r, Earth_v, Mars_r, Mars_v, Jupiter_r, Jupiter_v, Saturn_r, Saturn_v, Uranus_r, Uranus_v, Neptune_r, Neptune_v, Pluto_r, Pluto_v, Spacecraft_x, Spacescraft_y, Spacecraft_z)
+
+    plot3(0,0,0,'oy') %sun
