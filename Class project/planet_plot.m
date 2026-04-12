@@ -1,31 +1,51 @@
 %%% ploting function
 
-function planet_plot(Mercury_r,Mercury_v, Venus_r, Earth_r, Mars_r, Jupiter_r, Saturn_r, Uranus_r,  Neptune_r,  Pluto_r, Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res )% Spacecraft_x, Spacescraft_y, Spacecraft_z)
-mu = 1;
-Mercury = struct( ...
-    'a', 0.387099, ...
-    'e', 0.205631, ...
-    'inc', deg2rad(7.00487), ...
-    'OMEGA', deg2rad(48.33167), ...
-    'omega', deg2rad(29.12478), ...
-    'theta', deg2rad(174.7944), ...
-    'mu', 22031.868551); % km^3/s^2
+function planet_plot(Mercury_r,Mercury_v, Venus_r, Venus_v, Earth_r, Earth_v, Mars_r, Mars_v, Jupiter_r, Jupiter_v, Saturn_r, Saturn_v, Uranus_r, Uranus_v,  Neptune_r, Neptune_v,  Pluto_r, Pluto_v, Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res )% Spacecraft_x, Spacescraft_y, Spacecraft_z)
     clf
-    [mercuryj2000r,mercuryj2000v]=posandvelvector(Mercury,mu);
     sunmucononical = 1;
-SunTUtodays= 58.13; %Days
-SunAU_TUtokm_s= 29.79; %km/s
-AUtoKm= 1.495*10^8; %Km
 
-J2000epoch=juliandate(datetime(2000,1,1,11,58,00));
-dur.Format = 'd';
-plotdate=juliandate(datetime(2026,12,25,23,12,00));
-TOF=linspace(169.5419,180,1000)
-Mercury_orbit_r=zeros(3,length(TOF));
-Mercury_orbit_v=zeros(3,length(TOF));
-for i=1:length(TOF)
-    [Mercury_orbit_r(:,i),Mercury_orbit_v]=universalTOF(sunmucononical,TOF(i),Mercury_r,Mercury_v);
-end
+    TOF=linspace(Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res );
+    
+    %alocate memory for orbital prop
+    Mercury_orbit_r=zeros(3,length(TOF));
+    Mercury_orbit_v=zeros(3,length(TOF));
+    
+    Venus_orbit_r=zeros(3,length(TOF));
+    Venus_orbit_v=zeros(3,length(TOF));
+
+    Earth_orbit_r=zeros(3,length(TOF));
+    Earth_orbit_v=zeros(3,length(TOF));
+
+    Mars_orbit_r=zeros(3,length(TOF));
+    Mars_orbit_v=zeros(3,length(TOF));
+
+    Jupiter_orbit_r=zeros(3,length(TOF));
+    Jupiter_orbit_v=zeros(3,length(TOF));
+
+    Saturn_orbit_r=zeros(3,length(TOF));
+    Saturn_orbit_v=zeros(3,length(TOF));
+
+    Uranus_orbit_r=zeros(3,length(TOF));
+    Uranus_orbit_v=zeros(3,length(TOF));
+
+    Neptune_orbit_r=zeros(3,length(TOF));
+    Neptune_orbit_v=zeros(3,length(TOF));
+
+    Pluto_orbit_r=zeros(3,length(TOF));
+    Pluto_orbit_v=zeros(3,length(TOF));
+
+  
+    for i=1:length(TOF)
+        [Mercury_orbit_r(:,i),Mercury_orbit_v(:,i)]=universalTOF(sunmucononical,TOF(i),Mercury_r,Mercury_v);
+        [Venus_orbit_r(:,i),Venus_orbit_v(:,i)]=universalTOF(sunmucononical,TOF(i),Venus_r,Venus_v);
+        [Earth_orbit_r(:,i),Earth_orbit_v(:,i)]=universalTOF(sunmucononical,TOF(i),Earth_r,Earth_v);
+        [Mars_orbit_r(:,i),Mars_orbit_v(:,i)]=universalTOF(sunmucononical,TOF(i),Mars_r,Mars_v);
+        [Jupiter_orbit_r(:,i),Jupiter_orbit_v(:,i)]=universalTOF(sunmucononical,TOF(i),Jupiter_r,Jupiter_v);
+        [Saturn_orbit_r(:,i),Saturn_orbit_v(:,i)]=universalTOF(sunmucononical,TOF(i),Saturn_r,Saturn_v);
+        [Uranus_orbit_r(:,i),Uranus_orbit_v(:,i)]=universalTOF(sunmucononical,TOF(i),Uranus_r,Uranus_v);
+        [Neptune_orbit_r(:,i),Neptune_orbit_v(:,i)]=universalTOF(sunmucononical,TOF(i),Neptune_r,Neptune_v);
+        [Pluto_orbit_r(:,i),Pluto_orbit_v(:,i)]=universalTOF(sunmucononical,TOF(i),Pluto_r,Pluto_v);
+    end
 
     
     plot3(0,0,0,'oy',DisplayName="Sun") %sun
@@ -40,5 +60,18 @@ end
     plot3(Uranus_r(1),Uranus_r(2),Uranus_r(3),"o" ,DisplayName="Uranus")
     plot3(Neptune_r(1),Neptune_r(2),Neptune_r(3),"o" ,DisplayName="Neptune")
     plot3( Pluto_r(1), Pluto_r(2), Pluto_r(3),"o" ,DisplayName=" Pluto")
-    hold off
+    
+    %plot planet orbits
     legend
+    plot3(Mercury_orbit_r(1,:),Mercury_orbit_r(2,:),Mercury_orbit_r(3,:),"-w",HandleVisibility="off")
+    plot3(Venus_orbit_r(1,:),Venus_orbit_r(2,:),Venus_orbit_r(3,:),"-w",HandleVisibility="off")
+    plot3(Earth_orbit_r(1,:),Earth_orbit_r(2,:),Earth_orbit_r(3,:),"-w",HandleVisibility="off")
+    plot3(Mars_orbit_r(1,:),Mars_orbit_r(2,:),Mars_orbit_r(3,:),"-w",HandleVisibility="off")
+    plot3(Jupiter_orbit_r(1,:),Jupiter_orbit_r(2,:),Jupiter_orbit_r(3,:),"-w",HandleVisibility="off")
+    plot3(Saturn_orbit_r(1,:),Saturn_orbit_r(2,:),Saturn_orbit_r(3,:),"-w",HandleVisibility="off")
+    plot3(Uranus_orbit_r(1,:),Uranus_orbit_r(2,:),Uranus_orbit_r(3,:),"-w",HandleVisibility="off")
+    plot3(Neptune_orbit_r(1,:),Neptune_orbit_r(2,:),Neptune_orbit_r(3,:),"-w",HandleVisibility="off")
+    plot3(Pluto_orbit_r(1,:),Pluto_orbit_r(2,:),Pluto_orbit_r(3,:),"-w",HandleVisibility="off",MarkerSize=30)
+    title("Solar System December 25, 2026 at 11:12 pm UTC. ")
+    hold off
+    
