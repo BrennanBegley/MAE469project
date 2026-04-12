@@ -2,6 +2,8 @@
 % standardized format for the planets starting Parameters (Angles in
 % radians)
 % a, e, inc, Ω, ω, θ
+
+% *********************************The mu needs to be check for all of the planets ******
 mu = 1;
 Mercury = struct( ...
     'a', 0.387099, ...
@@ -9,7 +11,8 @@ Mercury = struct( ...
     'inc', deg2rad(7.00487), ...
     'OMEGA', deg2rad(48.33167), ...
     'omega', deg2rad(29.12478), ...
-    'theta', deg2rad(174.7944));
+    'theta', deg2rad(174.7944), ...
+    'mu', 22031.868551); % km^3/s^2
 
 Venus = struct( ...
     'a', 0.723332, ...
@@ -17,7 +20,8 @@ Venus = struct( ...
     'inc', deg2rad(3.39471), ...
     'OMEGA', deg2rad(76.68069), ...
     'omega', deg2rad(54.85229), ...
-    'theta', deg2rad(50.44675));
+    'theta', deg2rad(50.44675), ...
+    'mu', 324858.592); % km^3/s^2 
 
 Earth = struct( ...
     'a', 1.000000, ...
@@ -25,7 +29,8 @@ Earth = struct( ...
     'inc', deg2rad(0.00005), ...
     'OMEGA', deg2rad(-11.26064), ...
     'omega', deg2rad(114.20783), ...
-    'theta', deg2rad(-2.48284));
+    'theta', deg2rad(-2.48284), ...
+    'mu', 398600.435507); % km^3/s^2
 
 Mars = struct( ...
     'a', 1.523662, ...
@@ -33,7 +38,8 @@ Mars = struct( ...
     'inc', deg2rad(1.85061), ...
     'OMEGA', deg2rad(49.57854), ...
     'omega', deg2rad(286.4623), ...
-    'theta', deg2rad(19.41248));
+    'theta', deg2rad(19.41248), ...
+    'mu', 42828.4); % km^3/s^2 
 
 Jupiter = struct( ...
     'a', 5.203363, ...
@@ -41,7 +47,8 @@ Jupiter = struct( ...
     'inc', deg2rad(1.3053), ...
     'OMEGA', deg2rad(100.55615), ...
     'omega', deg2rad(-85.8023), ...
-    'theta', deg2rad(19.55053));
+    'theta', deg2rad(19.55053), ...
+    'mu', 1.26713*10^8); % km^3/s^2 
 
 Saturn = struct( ...
     'a', 9.537070, ...
@@ -49,7 +56,8 @@ Saturn = struct( ...
     'inc', deg2rad(2.48446), ...
     'OMEGA', deg2rad(113.71504), ...
     'omega', deg2rad(-21.2831), ...
-    'theta', deg2rad(-42.4876));
+    'theta', deg2rad(-42.4876), ...
+    'mu', 3.79406*10^7); % km^3/s^2 
 
 Uranus = struct( ...
     'a', 19.19126, ...
@@ -57,7 +65,8 @@ Uranus = struct( ...
     'inc', deg2rad(0.76986), ...
     'OMEGA', deg2rad(74.22988), ...
     'omega', deg2rad(96.73436), ...
-    'theta', deg2rad(142.2679));
+    'theta', deg2rad(142.2679), ...
+    'mu', 5.79456*10^6); % km^3/s^2 
 
 Neptune = struct( ...
     'a', 30.06896, ...
@@ -65,7 +74,8 @@ Neptune = struct( ...
     'inc', deg2rad(1.76917), ...
     'OMEGA', deg2rad(131.72169), ...
     'omega', deg2rad(-86.75034), ...
-    'theta', deg2rad(259.9087));
+    'theta', deg2rad(259.9087), ...
+    'mu', 6.83653*10^6); % km^3/s^2 
 
 Pluto = struct( ...
     'a', 39.48169, ...
@@ -73,81 +83,16 @@ Pluto = struct( ...
     'inc', deg2rad(17.14175), ...
     'OMEGA', deg2rad(110.30347), ...
     'omega', deg2rad(113.76329), ...
-    'theta', deg2rad(14.86205));
+    'theta', deg2rad(14.86205), ...
+    'mu', 975.500); % km^3/s^2 
 
 J2000epoch=datetime(2000,1,1,11,58,00);
 dur.Format = 'd';
-test=datetime(2026,3,30,11,58,00)-J2000epoch
+test=datetime(2026,12,25,23,12,00)-J2000epoch
 % Calculate the number of days from the J2000 epoch to the test date
 daysElapsed = days(test)
 
 
-%% Orbital elements Functions (Checked and good) 
-% expects angles in radians 
-% R and V from Orbital elements 
-function [rijk,vijk] = posandvelvector(planet,mu)
-    a       = planet.a;
-    e       = planet.e;
-    inc     = planet.inc;
-    OMEGA   = planet.OMEGA;
-    omega   = planet.omega;
-    trueanom   = planet.theta;
-    %PQW plane 
-    p=a*(1-e^2); 
-    r=p/(1+e*cos(trueanom));
-    rpqw= [r*cos(trueanom);r*sin(trueanom);0];
-    vpqw= sqrt(mu/p)*[-sin(trueanom); e+cos(trueanom);0];
-    %PQW to IJK matrix
-    R = [cos(OMEGA)*cos(omega) - sin(OMEGA)*sin(omega)*cos(inc),  -cos(OMEGA)*sin(omega) - sin(OMEGA)*cos(omega)*cos(inc),  sin(OMEGA)*sin(inc);
-         sin(OMEGA)*cos(omega) + cos(OMEGA)*sin(omega)*cos(inc),  -sin(OMEGA)*sin(omega) + cos(OMEGA)*cos(omega)*cos(inc), -cos(OMEGA)*sin(inc);
-         sin(omega)*sin(inc),                                      cos(omega)*sin(inc),                                     cos(inc)           ];
-    %IJK plane
-    rijk=R*rpqw;
-    vijk=R*vpqw;
-end
-
-% Orbital elements from R and V. outputs in this format angles in radians (tested and checked)
-% [a, e, inc, Ω, ω, θ]
-function[a,e,enorm,i,RAAN,argumentperi,trueanom]=orbitalelementscalc(rijk,vijk,mu)
-    vnorm=norm(vijk);
-    rnorm=norm(rijk);
-    h=cross(rijk,vijk);
-    hnorm=norm(h);
-    k=[0 0 1];
-    n=cross(k,h);
-    nnorm=norm(n);
-    e=(1/mu)*((vnorm^2-mu/rnorm)*rijk-dot(rijk,vijk)*vijk);
-    enorm=norm(e);
-    energy=vnorm^2/2-mu/rnorm;
-    a=-mu/(2*energy);
-    i=acos(dot(k,h)/hnorm);
-    if nnorm == 0
-        RAAN = 0;
-    else
-        RAAN = acos(dot([1 0 0],n)/nnorm);
-        if n(2)<0
-            RAAN=2*pi-RAAN;
-        end
-    end
-    
-    if enorm == 0 || nnorm == 0
-        argumentperi = 0;
-    else
-        argumentperi = acos(dot(n,e)/(nnorm*enorm));
-        if e(3)<0
-            argumentperi=2*pi-argumentperi;
-        end
-    end
-    
-    if enorm == 0
-        trueanom = acos(dot([1 0 0],rijk)/rnorm);
-    else
-        trueanom = acos(dot(e,rijk)/(enorm*rnorm));
-        if dot(rijk,vijk)<0
-            trueanom=2*pi-trueanom;
-        end
-    end
-end
 
 %% Initial J2000 RV calc
 % Initial R and V vectors of each planet at the J2000 time 
@@ -161,154 +106,9 @@ end
 [neptunej2000r,neptunej2000v]=posandvelvector(Neptune,mu);
 [plutoj2000r,plutoj2000v]=posandvelvector(Pluto,mu);
 
-%% Basic Planets propagation code (tested and checked)
-% Use universal TOF with S and C variation to calculate the new R and V at
-% some time after the j2000 date with mu ,desired TOF, R vec, V vec 
-function [runiIJK,vuniIJK] = universalTOF(mu, dt, r0_vec, v0_vec)
-r0=norm(r0_vec);
-v0=norm(v0_vec);
-energy = v0^2/2 - mu/r0;
-a = -mu/(2*energy);
-e_vec = ((norm(v0_vec)^2 - mu/r0).*r0_vec - dot(r0_vec,v0_vec).*v0_vec)/mu;
-ecc = norm(e_vec);
-% Handle no-solution case
-if energy >= 0 && abs(dt) > 1e5
-    fprintf("Energy >= 0 → Hyperbolic/Parabolic orbit.\n");
-    fprintf("Long time-of-flight may not converge.\n\n");
-    return;
-end
-
-x = sqrt(mu)*dt/a;
-tol = 1e-7;
-err = 1;
-i = 0;
-
-while abs(err) > tol
-    z = x^2 / a;
-    if ecc < 1   % Elliptical
-        if z == 0
-            C = 1/2; S = 1/6;
-        else
-            sqrt_z = sqrt(z);
-            S = (sqrt_z - sin(sqrt_z)) / (sqrt_z^3);
-            C = (1 - cos(sqrt_z)) / z;
-        end
-
-    elseif ecc > 1   % Hyperbolic
-        sqrt_neg_z = sqrt(-z);
-        S = (sinh(sqrt_neg_z) - sqrt_neg_z) / (sqrt_neg_z^3);
-        C = (1 - cosh(sqrt_neg_z)) / z;
-
-    else   % Parabolic (series)
-        C = 1/2 - z/24 + z^2/720;
-        S = 1/6 - z/120 + z^2/5040;
-    end
-
-    % Time equation
-    t = x^3*S + (dot(r0_vec,v0_vec)/sqrt(mu))*x^2*C + r0*x*(1 - z*S);
-
-    % Radius equation
-    r = x^2*C + (dot(r0_vec,v0_vec)/sqrt(mu))*x*(1 - z*S) + r0*(1 - z*C);
-
-    dtdx = r / sqrt(mu);
-
-    x_new = x + (dt - t)/dtdx;
-    err = x_new - x;
-    x = x_new;
-    i = i + 1;
-end
-
-f = 1 - (x^2/r0)*C;
-g = t - (x^3/sqrt(mu))*S;
-
-runiIJK = f*r0_vec + g*v0_vec;
 
 
-fdot = sqrt(mu)*x/(r0*r)*(z*S - 1);
-gdot = 1 - (x^2/r)*C;
 
-vuniIJK = fdot*r0_vec + gdot*v0_vec;
-
-if abs(f*gdot - fdot*g - 1) > 1e-8
-    fprintf('Universal TOF error f g check not correct')
-end
-end
-
-%% Gauss TOF Equations 
-% pass in the R1 R2 vector 
-function [v1,v2]= Gauss(r1,r2,TOF,short,mu)
-   t=0;
-   tol=1*10^(-10);
-   i=1;
-   rdot=dot(r1,r2);
-   normr2=norm(r2);
-   normr1=norm(r1);
-
-%delta theta calculations
-   if short==1
-       delTheta=acos(rdot/(normr2*normr1));
-   else
-       delThetatemp=acos(rdot/(normr2*normr1));
-       delTheta=2*pi-delThetatemp;
-   end
-
-% A calculation 
-   A=sqrt(normr2*normr1)*sin(delTheta)/sqrt(1-cos(delTheta));
-   z=1;
-
-
-    while abs(TOF - t) >= tol
-        % S and C equations 
-        if z>0
-            S=(sqrt(z)-sin(sqrt(z)))/sqrt(z^3);
-            C=(1-cos(sqrt(z)))/z;
-        elseif z<0
-            S=sinh(sqrt(-z))-sqrt(-z^3);
-            C=(1-cosh(-z))/z;
-        else
-            S=1/factorial(3)-z/factorial(5)+z^2/factorial(7);
-            C=1/factorial(2)-z/factorial(4)+z^2/factorial(6);
-        end
-
-        % Y equation 
-        y=normr2+normr1-A*(1-z*S)/sqrt(C);
-        
-        % X Equation 
-        x=sqrt(y/C);
-        
-        % time equation
-        t= (x^3*S+A*sqrt(y))/sqrt(mu);
-        
-        % ds equation
-        ds=(C-3*S)/(2*z);
-        
-        % dc equation 
-        dc=(1-z*S-2*C)/(2*z);
-        
-        % dt equation 
-        term1=x^3*(ds-(3*S*dc)/(2*C));
-        term2=A/8*((3*S*sqrt(y))/C+A/x);
-        dt=(term1+term2)/sqrt(mu);
-        
-        % Iteration equations 
-        zo = z;
-        z = zo + (TOF - t) / dt;    
-        i = i + 1;
-    end
-    
-   f=1-(y/normr1);
-   g=A*sqrt(y/mu);
-   fdot=(-sqrt(mu)*x)/(normr2*normr1)*(1-z*S);
-   gdot=1-(y/normr2);
-
-   if abs(f*gdot - fdot*g - 1) > 1e-8
-       fprintf('Universal TOF error f g check not correct')
-   end
-
-
-   v1=(r2-f*r1)/g;
-   v2=(gdot*r2-r1)/g;
-end
 %% 3d plot 
 % should take in a array of positions 
 

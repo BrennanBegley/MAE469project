@@ -1,0 +1,42 @@
+% Orbital elements from R and V. outputs in this format angles in radians (tested and checked)
+% [a, e, inc, Ω, ω, θ]
+function[a,e,enorm,i,RAAN,argumentperi,trueanom]=orbitalelementscalc(rijk,vijk,mu)
+    vnorm=norm(vijk);
+    rnorm=norm(rijk);
+    h=cross(rijk,vijk);
+    hnorm=norm(h);
+    k=[0 0 1];
+    n=cross(k,h);
+    nnorm=norm(n);
+    e=(1/mu)*((vnorm^2-mu/rnorm)*rijk-dot(rijk,vijk)*vijk);
+    enorm=norm(e);
+    energy=vnorm^2/2-mu/rnorm;
+    a=-mu/(2*energy);
+    i=acos(dot(k,h)/hnorm);
+    if nnorm == 0
+        RAAN = 0;
+    else
+        RAAN = acos(dot([1 0 0],n)/nnorm);
+        if n(2)<0
+            RAAN=2*pi-RAAN;
+        end
+    end
+    
+    if enorm == 0 || nnorm == 0
+        argumentperi = 0;
+    else
+        argumentperi = acos(dot(n,e)/(nnorm*enorm));
+        if e(3)<0
+            argumentperi=2*pi-argumentperi;
+        end
+    end
+    
+    if enorm == 0
+        trueanom = acos(dot([1 0 0],rijk)/rnorm);
+    else
+        trueanom = acos(dot(e,rijk)/(enorm*rnorm));
+        if dot(rijk,vijk)<0
+            trueanom=2*pi-trueanom;
+        end
+    end
+end
