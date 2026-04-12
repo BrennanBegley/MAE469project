@@ -1,9 +1,23 @@
 %%% ploting function
 
+<<<<<<< Updated upstream
 function planet_plot(Mercury_r,Venus_r, Earth_r, Earth_v, Mars_r, Jupiter_r, Saturn_r, Uranus_r,  Neptune_r,  Pluto_r)% Spacecraft_x, Spacescraft_y, Spacecraft_z)
+=======
+function planet_plot(Mercury_r,Mercury_v,Venus_r, Earth_r, Mars_r, Jupiter_r, Saturn_r, Uranus_r,  Neptune_r,  Pluto_r)% Spacecraft_x, Spacescraft_y, Spacecraft_z)
+>>>>>>> Stashed changes
     clf
     
-    
+    sunmucononical = 1;
+    SunTUtodays= 58.13; %Days
+    SunAU_TUtokm_s= 29.79; %km/s
+    AUtoKm= 1.495*10^8; %Km
+
+    J2000epoch=juliandate(datetime(2000,1,1,11,58,00));
+    dur.Format = 'd';
+    plotdate=juliandate(datetime(2026,12,25,23,12,00));
+    TOF=linspace(165,170);
+
+    Mercury_orbit_r=universalTOF(sunmucononical,TOF,Mercury_r,Mercury_v)
     
     plot3(0,0,0,'oy',DisplayName="Sun") %sun
     hold on
