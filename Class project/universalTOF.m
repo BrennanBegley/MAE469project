@@ -15,7 +15,7 @@ if energy >= 0 && abs(dt) > 1e5
 end
 
 x = sqrt(mu)*dt/a;
-tol = 1e-7;
+tol = 1e-10;
 err = 1;
 i = 0;
 
