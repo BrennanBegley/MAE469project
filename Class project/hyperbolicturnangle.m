@@ -2,7 +2,6 @@
 %the hyperbloicradius is the alt above the planet surface
 function [del,vdscinf,vascinf,vscdeparthelocentric]=hyperbolicturnangle(scarivalvijk,planetarivalvijk,AUTUtoKms,hyperbloicradius,planetstruc)
     
-   
     % hyperbolic excess speed at planet 
     scarivalv=scarivalvijk*AUTUtoKms;         %km/s spacecraft velocity at arival
     planetarivalv=planetarivalvijk*AUTUtoKms; %km/s planet velocity at arrival

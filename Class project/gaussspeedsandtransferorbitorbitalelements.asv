@@ -1,0 +1,19 @@
+
+
+function [transferscv1ijk,transferscv2ijk,transferorbitstruc,transferorbitscr1ijk,transferorbitscr2ijk]= gaussspeedsandtransferorbitorbitalelements(departureposr1ijk,arivalpos2ijk,arivalv2ijk,TOF,sunmu)
+    short=1;
+    transferorbitscr1ijk=departureposr1ijk;
+    transferorbitscr2ijk=arivalpos2ijk;
+    %Gauss transfer orbit velocities 
+    [transferscv1ijk,transferscv2ijk]=Gauss(departureposr1ijk,arivalpos2ijk,TOF,short,sunmu);
+    
+    %orbital elements of transfer orbit 
+    [a,e,~,i,RAAN,argumentperi,trueanom]=orbitalelementscalc(departureposr1ijk,transferscv1ijk,sunmu);
+    transferorbitstruc = struct( ...
+    'a', a, ...
+    'e', e, ...
+    'inc', (i), ...
+    'OMEGA', (RAAN), ...
+    'omega', (argumentperi), ...
+    'theta', (trueanom)); % km^3/s^2
+end
