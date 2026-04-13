@@ -1,6 +1,6 @@
 %%
 % note depart date needs to be passed in as a julian date 
-function [earthdepartrijk,earthdepartvijk,marsarrivalrijk,marsarivalvijk,transferorbitearthtomarsstruc,earthtotransferorbit1deltaV,delmarsflyby,marsdeparthyperbolicexcessvelocity,marsarivalhyperbolicexcessvelocity,marsflybydepartscvelocityijk]=eathdepatruetomars(earthj2000rijk,earthj2000vijk,marsj2000rijk,marsj2000vijk,departdate,transferorbit1TOF,earthstuc,marsstruc,earthcircularorbitalt,sunmucononical,AUTUtoKms,j2000date,hyperbloicradius )
+function [earthdepartrijk,earthdepartvijk,marsdepartrijk,marsdepartvijk,marsarrivalrijk,marsarivalvijk,transferorbitearthtomarsstruc,earthtotransferorbit1deltaV,delmarsflyby,marsdeparthyperbolicexcessvelocity,marsarivalhyperbolicexcessvelocity,marsflybydepartscvelocityijk,transferscv1ijk]=eathdepatruetomars(earthj2000rijk,earthj2000vijk,marsj2000rijk,marsj2000vijk,departdate,transferorbit1TOF,earthstuc,marsstruc,earthcircularorbitalt,sunmucononical,AUTUtoKms,j2000date,hyperbloicradius )
     %On the departure date 
     departTOF=departdate-j2000date;
     [earthdepartrijk,earthdepartvijk]=universalTOF(sunmucononical,departTOF,earthj2000rijk,earthj2000vijk); %AU AU/TU

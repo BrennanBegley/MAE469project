@@ -15,7 +15,8 @@ function [del,vdscinf,vascinf,vscdeparthelocentric]=hyperbolicturnangle(scarival
     fprintf('vascinfnorm (km/s): %g\n', vascinfnorm);
 
     %hyperbolic turn angle
-    del= 2*asin(1/(1+((hyperbloicradius+planetstruc.r)*vascinfnorm^2)/planetstruc.mu));
+    disp(hyperbloicradius+planetstruc.r)
+    del= 2*asin(1/(1+((hyperbloicradius+planetstruc.r)*vascinfnorm^2)/planetstruc.mu))
 
     %hyperbolic transformation matrix
     H=[cos((del)), -sin((del)), 0; sin((del)), cos((del)), 0; 0,0,1];

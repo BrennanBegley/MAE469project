@@ -238,120 +238,98 @@ Planet_TOF_res     = 500;  % resolution
 
 % Call plotting function for Earth and Mars (keep Jupiter input as current Jupiter position)
 figure;
-
-[Er, Ev, Mr, Mv, Jr, Jv, SCr, SCv] = planet_plotearthsmall( earthdepartrijk, earthdepartvijk, marsdepartrijk, marsdepartvijk, Jupiterproblem4ar, Jupiterproblem4av, Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res,earthdepartrijk,transferscv1ijk );
-planet_plotmarssmall(Er, Ev, Mr, Mv, Jr, Jv,Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res, SCr, marsflybydepartscvelocityijk)
-
+planet_plotearthsmall( earthdepartrijk, earthdepartvijk, marsdepartrijk, marsdepartvijk, Jupiterproblem4ar, Jupiterproblem4av, Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res,earthdepartrijk,transferscv1ijk );
 %% Display plot of the planets
 % Planet_TOF_inital=168; %start of TOF (sun TU)
 % Planet_TOF_final=3000; %end of TOF (sun TU)
 % Planet_TOF_res=10000; %number of point for the TOF calc
 % planet_plot(Mercuryproblem4ar,Mercuryproblem4av,Venusproblem4ar, Venusproblem4av,Earthproblem4ar, Earthproblem4av, Marsproblem4ar, Marsproblem4av,Jupiterproblem4ar,Jupiterproblem4av,Saturnproblem4ar,Saturnproblem4av,Uranusproblem4ar,Uranusproblem4av,Neptuneproblem4ar, Neptuneproblem4av,Plutoproblem4ar, Plutoproblem4av,Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res)
 %%% ploting function
-function [Earth_final_r, Earth_final_v, ...
-          Mars_final_r, Mars_final_v, ...
-          Jupiter_final_r, Jupiter_final_v, ...
-          SC_final_r, SC_final_v] = ...
-          planet_plotearthsmall(Earth_r, Earth_v, Mars_r, Mars_v, Jupiter_r, Jupiter_v, ...
-          Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res, Spacecraft_r, Spacecraft_v)
-        figure(1)
+
+function planet_plotearthsmall(Earth_r, Earth_v, Mars_r, Mars_v, Jupiter_r, Jupiter_v, Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res, Spacecraft_r, Spacecraft_v)
+    % Plots Earth, Mars, Jupiter orbits and propagates/plots a spacecraft orbit.
+    % Inputs:
+    %   Earth_r, Earth_v, Mars_r, Mars_v, Jupiter_r, Jupiter_v : 3x1 state vectors (AU, AU/TU)
+    %   Planet_TOF_inital, Planet_TOF_final : scalar times (TU)
+    %   Planet_TOF_res : number of propagation points
+    %   Spacecraft_r, Spacecraft_v : 3x1 initial spacecraft state vectors (same units)
+    %
+    % Note: This function uses universalTOF(mu, TOF, r0, v0) returning [r,v].
     clf
-    set(gcf, 'Color', [0.06 0.06 0.06]);
+    % Force dark mode for the figure: dark background, light axes, ticks and text.
+    set(gcf, 'Color', [0.06 0.06 0.06]); % near-black figure background
 
     sunmucononical = 1;
+
     TOF = linspace(Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res);
 
-    % Preallocate position arrays
+    % preallocate orbital propagation arrays
     Earth_orbit_r = zeros(3, length(TOF));
     Mars_orbit_r  = zeros(3, length(TOF));
     Jupiter_orbit_r = zeros(3, length(TOF));
     SC_orbit_r = zeros(3, length(TOF));
 
-    % Preallocate velocity arrays
-    Earth_orbit_v = zeros(3, length(TOF));
-    Mars_orbit_v  = zeros(3, length(TOF));
-    Jupiter_orbit_v = zeros(3, length(TOF));
-    SC_orbit_v = zeros(3, length(TOF));
-
     for i = 1:length(TOF)
-        [Earth_orbit_r(:,i), Earth_orbit_v(:,i)] = universalTOF(sunmucononical, TOF(i), Earth_r, Earth_v);
-        [Mars_orbit_r(:,i),  Mars_orbit_v(:,i)]  = universalTOF(sunmucononical, TOF(i), Mars_r, Mars_v);
-        [Jupiter_orbit_r(:,i), Jupiter_orbit_v(:,i)] = universalTOF(sunmucononical, TOF(i), Jupiter_r, Jupiter_v);
-
+        [Earth_orbit_r(:,i), ~]   = universalTOF(sunmucononical, TOF(i), Earth_r, Earth_v);
+        [Mars_orbit_r(:,i),  ~]   = universalTOF(sunmucononical, TOF(i), Mars_r, Mars_v);
+        [Jupiter_orbit_r(:,i),~]  = universalTOF(sunmucononical, TOF(i), Jupiter_r, Jupiter_v);
         if nargin >= 11 && ~isempty(Spacecraft_r) && ~isempty(Spacecraft_v)
-            [SC_orbit_r(:,i), SC_orbit_v(:,i)] = universalTOF(sunmucononical, TOF(i), Spacecraft_r, Spacecraft_v);
+            [SC_orbit_r(:,i), ~] = universalTOF(sunmucononical, TOF(i), Spacecraft_r, Spacecraft_v);
         end
     end
 
-    % Colors
-    sunColor = [1.0, 0.85, 0.0];
-    earthColor = [0.2, 0.6, 1.0];
-    marsColor  = [1.0, 0.5, 0.2];
-    jupiterColor = [1.0, 0.85, 0.7];
-    orbitColor = [0.7, 0.7, 0.7];
-    scColor = [1.0, 0.2, 0.2];
-    finalMarkerColor = [0.9, 0.9, 0.9];
+    % Use light colors for plotted objects to contrast with dark background
+    sunColor = [1.0, 0.85, 0.0];   % yellowish
+    earthColor = [0.2, 0.6, 1.0];  % light blue
+    marsColor  = [1.0, 0.5, 0.2];   % orange
+    jupiterColor = [1.0, 0.85, 0.7];% pale
+    orbitColor = [0.7, 0.7, 0.7];   % light gray for orbits
+    scColor = [1.0, 0.2, 0.2];      % bright red for spacecraft
+    finalMarkerColor = [0.9, 0.9, 0.9]; % dim diamond color
 
-    ax = axes('Parent', gcf, ...
-        'Color', [0.03 0.03 0.03], ...
-        'XColor', [0.9 0.9 0.9], ...
-        'YColor', [0.9 0.9 0.9], ...
-        'ZColor', [0.9 0.9 0.9], ...
-        'GridColor', [0.5 0.5 0.5]);
-
+    % set axes background dark and text/tick colors light after creating axes
+    ax = axes('Parent', gcf, 'Color', [0.03 0.03 0.03], 'XColor', [0.9 0.9 0.9], 'YColor', [0.9 0.9 0.9], 'ZColor', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
     hold(ax, 'on')
 
-    % Sun
+    % plot Sun
     plot3(ax, 0,0,0, 'o', 'MarkerFaceColor', sunColor, 'MarkerEdgeColor', sunColor, 'MarkerSize', 8, 'DisplayName', "Sun")
 
-    % Initial positions
+    % plot current positions
     plot3(ax, Earth_r(1), Earth_r(2), Earth_r(3), 'o', 'MarkerFaceColor', earthColor, 'MarkerEdgeColor', earthColor, 'DisplayName', "Earth")
     plot3(ax, Mars_r(1),  Mars_r(2),  Mars_r(3),  'o', 'MarkerFaceColor', marsColor, 'MarkerEdgeColor', marsColor, 'DisplayName', "Mars")
     plot3(ax, Jupiter_r(1), Jupiter_r(2), Jupiter_r(3), 'o', 'MarkerFaceColor', jupiterColor, 'MarkerEdgeColor', jupiterColor, 'DisplayName', "Jupiter")
 
-    % Orbits
+    % plot propagated orbits (use lighter lines)
     plot3(ax, Earth_orbit_r(1,:), Earth_orbit_r(2,:), Earth_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility','off')
     plot3(ax, Mars_orbit_r(1,:),  Mars_orbit_r(2,:),  Mars_orbit_r(3,:),  'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility','off')
     plot3(ax, Jupiter_orbit_r(1,:), Jupiter_orbit_r(2,:), Jupiter_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility','off')
 
-    % Spacecraft
+    % plot spacecraft orbit if provided
     if exist('SC_orbit_r','var') && any(SC_orbit_r(:))
         plot3(ax, SC_orbit_r(1,:), SC_orbit_r(2,:), SC_orbit_r(3,:), '-', 'Color', scColor, 'LineWidth', 1.5, 'DisplayName', "Spacecraft")
+        % mark spacecraft initial position
         plot3(ax, Spacecraft_r(1), Spacecraft_r(2), Spacecraft_r(3), 's', 'MarkerFaceColor', scColor, 'MarkerEdgeColor', scColor, 'DisplayName', "SC Start")
-
-        SC_final_r = SC_orbit_r(:,end);
-        SC_final_v = SC_orbit_v(:,end);
-
-        plot3(ax, SC_final_r(1), SC_final_r(2), SC_final_r(3), 'd', ...
-            'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, ...
-            'MarkerSize', 8, 'LineWidth', 1.2, 'DisplayName', "SC Final")
-    else
-        SC_final_r = [];
-        SC_final_v = [];
+        % mark spacecraft final propagated position with a dim diamond
+        SC_final = SC_orbit_r(:,end);
+        plot3(ax, SC_final(1), SC_final(2), SC_final(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'MarkerSize', 8, 'LineWidth', 1.2, 'DisplayName', "SC Final")
     end
 
-    % Final planet states
-    Earth_final_r = Earth_orbit_r(:,end);
-    Earth_final_v = Earth_orbit_v(:,end);
+    % Also mark final positions of the planets (dim diamonds)
+    Earth_final = Earth_orbit_r(:,end);
+    Mars_final  = Mars_orbit_r(:,end);
+    Jupiter_final = Jupiter_orbit_r(:,end);
 
-    Mars_final_r  = Mars_orbit_r(:,end);
-    Mars_final_v  = Mars_orbit_v(:,end);
+    plot3(ax, Earth_final(1), Earth_final(2), Earth_final(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'MarkerSize', 7, 'LineWidth', 1, 'HandleVisibility','off')
+    plot3(ax, Mars_final(1),  Mars_final(2),  Mars_final(3),  'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'MarkerSize', 7, 'LineWidth', 1, 'HandleVisibility','off')
+    plot3(ax, Jupiter_final(1), Jupiter_final(2), Jupiter_final(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'MarkerSize', 7, 'LineWidth', 1, 'HandleVisibility','off')
 
-    Jupiter_final_r = Jupiter_orbit_r(:,end);
-    Jupiter_final_v = Jupiter_orbit_v(:,end);
-
-    % Mark final positions
-    plot3(ax, Earth_final_r(1), Earth_final_r(2), Earth_final_r(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility','off')
-    plot3(ax, Mars_final_r(1),  Mars_final_r(2),  Mars_final_r(3),  'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility','off')
-    plot3(ax, Jupiter_final_r(1), Jupiter_final_r(2), Jupiter_final_r(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility','off')
-
+    % Adjust text colors to be visible on dark background
     legend(ax, 'TextColor', [0.95 0.95 0.95], 'Color', [0.12 0.12 0.12])
     title(ax, "Solar System (Earth, Mars, Jupiter)", 'Color', [0.95 0.95 0.95])
 
     xlabel(ax, 'x (AU)', 'Color', [0.95 0.95 0.95])
     ylabel(ax, 'y (AU)', 'Color', [0.95 0.95 0.95])
     zlabel(ax, 'z (AU)', 'Color', [0.95 0.95 0.95])
-
     axis(ax, 'vis3d')
 
     xl = ax.XLim;
@@ -360,123 +338,97 @@ function [Earth_final_r, Earth_final_v, ...
     halfRangeXY = max([diff(xl), diff(yl)])/2;
     zCenter = mean(zl);
     ax.ZLim = [zCenter - halfRangeXY, zCenter + halfRangeXY];
-
     daspect(ax, [1 1 1])
+
     grid(ax, 'on')
     view(ax, 3)
-
     hold(ax, 'off')
 end
-%% Display plot of the planets
-% Planet_TOF_inital=168; %start of TOF (sun TU)
-% Planet_TOF_final=3000; %end of TOF (sun TU)
-% Planet_TOF_res=10000; %number of point for the TOF calc
-% planet_plot(Mercuryproblem4ar,Mercuryproblem4av,Venusproblem4ar, Venusproblem4av,Earthproblem4ar, Earthproblem4av, Marsproblem4ar, Marsproblem4av,Jupiterproblem4ar,Jupiterproblem4av,Saturnproblem4ar,Saturnproblem4av,Uranusproblem4ar,Uranusproblem4av,Neptuneproblem4ar, Neptuneproblem4av,Plutoproblem4ar, Plutoproblem4av,Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res)
-%%% ploting function
-function [Earth_final_r, Earth_final_v, ...
-          Mars_final_r, Mars_final_v, ...
-          Jupiter_final_r, Jupiter_final_v, ...
-          SC_final_r, SC_final_v] = ...
-          planet_plotmarssmall(Earth_r, Earth_v, Mars_r, Mars_v, Jupiter_r, Jupiter_v, ...
-          Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res, Spacecraft_r, Spacecraft_v)
-    figure(2)
+
+function planet_plotmarssmall(Earth_r, Earth_v, Mars_r, Mars_v, Jupiter_r, Jupiter_v, Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res, Spacecraft_r, Spacecraft_v)
+    % Plots Earth, Mars, Jupiter orbits and propagates/plots a spacecraft orbit.
+    % Inputs:
+    %   Earth_r, Earth_v, Mars_r, Mars_v, Jupiter_r, Jupiter_v : 3x1 state vectors (AU, AU/TU)
+    %   Planet_TOF_inital, Planet_TOF_final : scalar times (TU)
+    %   Planet_TOF_res : number of propagation points
+    %   Spacecraft_r, Spacecraft_v : 3x1 initial spacecraft state vectors (same units)
+    %
+    % Note: This function uses universalTOF(mu, TOF, r0, v0) returning [r,v].
     clf
-    set(gcf, 'Color', [0.06 0.06 0.06]);
+    % Force dark mode for the figure: dark background, light axes, ticks and text.
+    set(gcf, 'Color', [0.06 0.06 0.06]); % near-black figure background
 
     sunmucononical = 1;
+
     TOF = linspace(Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res);
 
-    % Preallocate position arrays
+    % preallocate orbital propagation arrays
     Earth_orbit_r = zeros(3, length(TOF));
     Mars_orbit_r  = zeros(3, length(TOF));
     Jupiter_orbit_r = zeros(3, length(TOF));
     SC_orbit_r = zeros(3, length(TOF));
 
-    % Preallocate velocity arrays
-    Earth_orbit_v = zeros(3, length(TOF));
-    Mars_orbit_v  = zeros(3, length(TOF));
-    Jupiter_orbit_v = zeros(3, length(TOF));
-    SC_orbit_v = zeros(3, length(TOF));
-
     for i = 1:length(TOF)
-        [Earth_orbit_r(:,i), Earth_orbit_v(:,i)] = universalTOF(sunmucononical, TOF(i), Earth_r, Earth_v);
-        [Mars_orbit_r(:,i),  Mars_orbit_v(:,i)]  = universalTOF(sunmucononical, TOF(i), Mars_r, Mars_v);
-        [Jupiter_orbit_r(:,i), Jupiter_orbit_v(:,i)] = universalTOF(sunmucononical, TOF(i), Jupiter_r, Jupiter_v);
-
+        [Earth_orbit_r(:,i), ~]   = universalTOF(sunmucononical, TOF(i), Earth_r, Earth_v);
+        [Mars_orbit_r(:,i),  ~]   = universalTOF(sunmucononical, TOF(i), Mars_r, Mars_v);
+        [Jupiter_orbit_r(:,i),~]  = universalTOF(sunmucononical, TOF(i), Jupiter_r, Jupiter_v);
         if nargin >= 11 && ~isempty(Spacecraft_r) && ~isempty(Spacecraft_v)
-            [SC_orbit_r(:,i), SC_orbit_v(:,i)] = universalTOF(sunmucononical, TOF(i), Spacecraft_r, Spacecraft_v);
+            [SC_orbit_r(:,i), ~] = universalTOF(sunmucononical, TOF(i), Spacecraft_r, Spacecraft_v);
         end
     end
-    
-    % Colors
-    sunColor = [1.0, 0.85, 0.0];
-    earthColor = [0.2, 0.6, 1.0];
-    marsColor  = [1.0, 0.5, 0.2];
-    jupiterColor = [1.0, 0.85, 0.7];
-    orbitColor = [0.7, 0.7, 0.7];
-    scColor = [1.0, 0.2, 0.2];
-    finalMarkerColor = [0.9, 0.9, 0.9];
 
-    ax = axes('Parent', gcf, ...
-        'Color', [0.03 0.03 0.03], ...
-        'XColor', [0.9 0.9 0.9], ...
-        'YColor', [0.9 0.9 0.9], ...
-        'ZColor', [0.9 0.9 0.9], ...
-        'GridColor', [0.5 0.5 0.5]);
+    % Use light colors for plotted objects to contrast with dark background
+    sunColor = [1.0, 0.85, 0.0];   % yellowish
+    earthColor = [0.2, 0.6, 1.0];  % light blue
+    marsColor  = [1.0, 0.5, 0.2];   % orange
+    jupiterColor = [1.0, 0.85, 0.7];% pale
+    orbitColor = [0.7, 0.7, 0.7];   % light gray for orbits
+    scColor = [1.0, 0.2, 0.2];      % bright red for spacecraft
+    finalMarkerColor = [0.9, 0.9, 0.9]; % dim diamond color
 
+    % set axes background dark and text/tick colors light after creating axes
+    ax = axes('Parent', gcf, 'Color', [0.03 0.03 0.03], 'XColor', [0.9 0.9 0.9], 'YColor', [0.9 0.9 0.9], 'ZColor', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
     hold(ax, 'on')
 
-    % Sun
+    % plot Sun
     plot3(ax, 0,0,0, 'o', 'MarkerFaceColor', sunColor, 'MarkerEdgeColor', sunColor, 'MarkerSize', 8, 'DisplayName', "Sun")
 
-    % Initial positions
+    % plot current positions
     plot3(ax, Earth_r(1), Earth_r(2), Earth_r(3), 'o', 'MarkerFaceColor', earthColor, 'MarkerEdgeColor', earthColor, 'DisplayName', "Earth")
     plot3(ax, Mars_r(1),  Mars_r(2),  Mars_r(3),  'o', 'MarkerFaceColor', marsColor, 'MarkerEdgeColor', marsColor, 'DisplayName', "Mars")
     plot3(ax, Jupiter_r(1), Jupiter_r(2), Jupiter_r(3), 'o', 'MarkerFaceColor', jupiterColor, 'MarkerEdgeColor', jupiterColor, 'DisplayName', "Jupiter")
 
-    % Orbits
+    % plot propagated orbits (use lighter lines)
     plot3(ax, Earth_orbit_r(1,:), Earth_orbit_r(2,:), Earth_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility','off')
     plot3(ax, Mars_orbit_r(1,:),  Mars_orbit_r(2,:),  Mars_orbit_r(3,:),  'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility','off')
     plot3(ax, Jupiter_orbit_r(1,:), Jupiter_orbit_r(2,:), Jupiter_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility','off')
 
-    % Spacecraft
+    % plot spacecraft orbit if provided
     if exist('SC_orbit_r','var') && any(SC_orbit_r(:))
         plot3(ax, SC_orbit_r(1,:), SC_orbit_r(2,:), SC_orbit_r(3,:), '-', 'Color', scColor, 'LineWidth', 1.5, 'DisplayName', "Spacecraft")
+        % mark spacecraft initial position
         plot3(ax, Spacecraft_r(1), Spacecraft_r(2), Spacecraft_r(3), 's', 'MarkerFaceColor', scColor, 'MarkerEdgeColor', scColor, 'DisplayName', "SC Start")
-
-        SC_final_r = SC_orbit_r(:,end);
-        SC_final_v = SC_orbit_v(:,end);
-
-        plot3(ax, SC_final_r(1), SC_final_r(2), SC_final_r(3), 'd', ...
-            'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, ...
-            'MarkerSize', 8, 'LineWidth', 1.2, 'DisplayName', "SC Final")
-    else
-        SC_final_r = [];
-        SC_final_v = [];
+        % mark spacecraft final propagated position with a dim diamond
+        SC_final = SC_orbit_r(:,end);
+        plot3(ax, SC_final(1), SC_final(2), SC_final(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'MarkerSize', 8, 'LineWidth', 1.2, 'DisplayName', "SC Final")
     end
 
-    % Final planet states
-    Earth_final_r = Earth_orbit_r(:,end);
-    Earth_final_v = Earth_orbit_v(:,end);
+    % Also mark final positions of the planets (dim diamonds)
+    Earth_final = Earth_orbit_r(:,end);
+    Mars_final  = Mars_orbit_r(:,end);
+    Jupiter_final = Jupiter_orbit_r(:,end);
 
-    Mars_final_r  = Mars_orbit_r(:,end);
-    Mars_final_v  = Mars_orbit_v(:,end);
+    plot3(ax, Earth_final(1), Earth_final(2), Earth_final(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'MarkerSize', 7, 'LineWidth', 1, 'HandleVisibility','off')
+    plot3(ax, Mars_final(1),  Mars_final(2),  Mars_final(3),  'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'MarkerSize', 7, 'LineWidth', 1, 'HandleVisibility','off')
+    plot3(ax, Jupiter_final(1), Jupiter_final(2), Jupiter_final(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'MarkerSize', 7, 'LineWidth', 1, 'HandleVisibility','off')
 
-    Jupiter_final_r = Jupiter_orbit_r(:,end);
-    Jupiter_final_v = Jupiter_orbit_v(:,end);
-
-    % Mark final positions
-    plot3(ax, Earth_final_r(1), Earth_final_r(2), Earth_final_r(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility','off')
-    plot3(ax, Mars_final_r(1),  Mars_final_r(2),  Mars_final_r(3),  'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility','off')
-    plot3(ax, Jupiter_final_r(1), Jupiter_final_r(2), Jupiter_final_r(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility','off')
-
+    % Adjust text colors to be visible on dark background
     legend(ax, 'TextColor', [0.95 0.95 0.95], 'Color', [0.12 0.12 0.12])
     title(ax, "Solar System (Earth, Mars, Jupiter)", 'Color', [0.95 0.95 0.95])
 
     xlabel(ax, 'x (AU)', 'Color', [0.95 0.95 0.95])
     ylabel(ax, 'y (AU)', 'Color', [0.95 0.95 0.95])
     zlabel(ax, 'z (AU)', 'Color', [0.95 0.95 0.95])
-
     axis(ax, 'vis3d')
 
     xl = ax.XLim;
@@ -485,10 +437,9 @@ function [Earth_final_r, Earth_final_v, ...
     halfRangeXY = max([diff(xl), diff(yl)])/2;
     zCenter = mean(zl);
     ax.ZLim = [zCenter - halfRangeXY, zCenter + halfRangeXY];
-
     daspect(ax, [1 1 1])
+
     grid(ax, 'on')
     view(ax, 3)
-
     hold(ax, 'off')
 end
