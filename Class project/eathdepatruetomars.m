@@ -19,6 +19,6 @@ function [earthdepartrijk,earthdepartvijk,marsarrivalrijk,marsarivalvijk,transfe
     [earthtotransferorbit1deltaV]= deltavforcirculartohyperbolic(earthcircularorbitalt,earthstuc,earthtotransferorbit1hyperbolicexess);
 
     % Calculate the hyperbolic turn angle for mars flyby
-    [delmarsflyby,marsdeparthyperbolicexcessvelocity,marsarivalhyperbolicexcessvelocity,marsflybydepartscvelocityijk]=hyperbolicturnangle(transferscv2ijk,transferorbitscr2ijk,AUTUtoKms,hyperbloicradius,marsstruc);
+    [delmarsflyby,marsdeparthyperbolicexcessvelocity,marsarivalhyperbolicexcessvelocity,marsflybydepartscvelocityijk]=hyperbolicturnangle(transferscv2ijk,marsarivalvijk,AUTUtoKms,hyperbloicradius,marsstruc);
     
 end

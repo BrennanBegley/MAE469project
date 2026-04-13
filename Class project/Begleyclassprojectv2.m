@@ -118,8 +118,8 @@ J2000epoch=juliandate(datetime(2000,1,1,11,58,00))
 %% Problem 4 a (ASTRONOMICAL UNITS)
 % Calculating the planets position and velocity vector on December 25, 2026 at 11:12 pm UTC.
 % THE TOF NEEDS TO BE IN SOLAR TU because of the AU units 
-plotdate=juliandate(datetime(2026,12,25,23,12,00))
-promblem4aTOF=(plotdate-J2000epoch)/SunTUtodays
+plotdate=juliandate(datetime(2026,12,25,23,12,00));
+promblem4aTOF=(plotdate-J2000epoch)/SunTUtodays;
 
 [Mercuryproblem4ar,Mercuryproblem4av]=universalTOF(sunmucononical,promblem4aTOF,mercuryj2000r,mercuryj2000v);
 [Venusproblem4ar,Venusproblem4av]=universalTOF(sunmucononical,promblem4aTOF,venusj2000r,venusj2000v);
@@ -196,3 +196,28 @@ T = table(planetNames, ...
 disp(T)
 
 
+%% MAIN CODE SECTION 
+Selecteddepatruedate= datetime(2027,6,25,23,12,00);
+departjulidate= juliandate(Selecteddepatruedate)
+transferflightdate= datetime(2028,4,25,23,12,00);
+transferorbit1TOF = (juliandate(transferflightdate) - departjulidate) / SunTUtodays
+
+earthcircularorbitalt= 200; %km
+hyperbloicradius=150; %km
+
+
+[earthdepartrijk,earthdepartvijk,marsarrivalrijk,marsarivalvijk,transferorbitearthtomarsstruc,earthtotransferorbit1deltaV,delmarsflyby,marsdeparthyperbolicexcessvelocity,marsarivalhyperbolicexcessvelocity,marsflybydepartscvelocityijk]=...
+ eathdepatruetomars(earthj2000r,earthj2000v,marsj2000r,marsj2000v,departjulidate,transferorbit1TOF,Earth,Mars,earthcircularorbitalt,sunmucononical,SunAU_TUtokm_s,J2000epoch,hyperbloicradius );
+
+% Print outputs to command window with clear labels
+fprintf('\n--- Earth to Mars Transfer Outputs ---\n');
+fprintf('earthdepartrijk (km):\n'); disp(earthdepartrijk);
+fprintf('earthdepartvijk (km/s):\n'); disp(earthdepartvijk);
+fprintf('marsarrivalrijk (km):\n'); disp(marsarrivalrijk);
+fprintf('marsarivalvijk (km/s):\n'); disp(marsarivalvijk);
+fprintf('transferorbitearthtomarsstruc (struct):\n'); disp(transferorbitearthtomarsstruc);
+fprintf('earthtotransferorbit1deltaV (km/s):\n'); disp(earthtotransferorbit1deltaV);
+fprintf('delmarsflyby (km/s):\n'); disp(delmarsflyby);
+fprintf('marsdeparthyperbolicexcessvelocity (km/s):\n'); disp(marsdeparthyperbolicexcessvelocity);
+fprintf('marsarivalhyperbolicexcessvelocity (km/s):\n'); disp(marsarivalhyperbolicexcessvelocity);
+fprintf('marsflybydepartscvelocityijk (km/s):\n'); disp(marsflybydepartscvelocityijk);
