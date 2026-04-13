@@ -65,7 +65,7 @@ gdot = 1 - (x^2/r)*C;
 
 vuniIJK = fdot*r0_vec + gdot*v0_vec;
 
-if abs(f*gdot - fdot*g - 1) > 1e-8
+if abs(f*gdot - fdot*g - 1) > 1e-10
     fprintf('Universal TOF error f g check not correct')
 end
 end
