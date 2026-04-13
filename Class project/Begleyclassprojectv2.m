@@ -196,36 +196,3 @@ T = table(planetNames, ...
 disp(T)
 
 
-%%
-% note depart date needs to be passed in as a julian date 
-function [marsarivalsc_v2ijk,earthscdeltav]=eathdepatruetomars(earthj2000rijk,earthj2000vijk,marsj2000rijk,marsj2000vijk,departdate,TOF,earthmu,earthstuc,earthcircularorbitalt,sunmucononical,AUtoKM,AUTUtoKms,j2000date);
-    %On the departure date 
-    departTOF=departdate-j2000date;
-    [earthdepartrijk,earthdepartvijk]=universalTOF(sunmucononical,departTOF,earthj2000rijk,earthj2000vijk); %AU AU/TU
-    [marsdepartrijk,marsdepartvijk]=universalTOF(sunmucononical,departTOF,marsj2000rijk,marsj2000vijk); %AU AU/TU
-
-    %mars position on arival date determined by TOF
-    [marsarrivalrijk,marsarivalvijk]=universalTOF(sunmucononical,TOF,marsdepartrijk,marsdepartvijk); %AU AU/TU
-
-    %Gauss velocity calculation
-    short=1; % short gauss path
-    [Earthdepartsc_v1ijk,marsarivalsc_v2ijk]= Gauss(earthdepartrijk,marsarivalrijk,TOF,short,sunmucononical); %AU/TU
-
-    %hyperbolic excess speed at earth (NORMAL UNITS)
-    Earthdepartv=norm(earthdepartvijk)*AUTUtoKms;         %km/s
-    Earthdepartsc_v1=norm(Earthdepartsc_v1ijk)*AUTUtoKms; %km/s
-    scearthhyperbolicexess=Earthdepartsc_v1-Earthdepartv; %km/s
-
-    %hyperbolic excess specific energy 
-    earthschyperenergy=scearthhyperbolicexess^2/2; %km^2/s^2
-
-    %hyperbolic excess velocity at circular PE
-    vofhyperbolicatcircularpe= sqrt(2*(earthschyperenergy+earthmu/(earthstuc.r+earthcircularorbitalt)));
-
-    %circular orbit velocity 
-    scearthcircorbitv=
-
-    %earth delta V
-    earthscdeltav=vofhyperbolicatcircularpe-
-end
-
