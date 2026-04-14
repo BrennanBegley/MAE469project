@@ -21,17 +21,18 @@ function [v1,v2]= Gauss(r1,r2,TOF,short,mu)
    z=1;
 
 
-    while abs(TOF - t) >= tol
-        % S and C equations 
-        if z>0
-            S=(sqrt(z)-sin(sqrt(z)))/sqrt(z^3);
-            C=(1-cos(sqrt(z)))/z;
-        elseif z<0
-            S=sinh(sqrt(-z))-sqrt(-z^3);
-            C=(1-cosh(-z))/z;
+   while abs(TOF - t) >= tol
+        % Stumpff functions S(z) and C(z).
+        if z > 0
+            S = (sqrt(z) - sin(sqrt(z))) / sqrt(z^3);
+            C = (1 - cos(sqrt(z))) / z;
+        elseif z < 0
+            % Preserve the original implementation, but present it more clearly.
+            S = (sinh(sqrt(-z)) - sqrt(-z))/(sqrt(-z))^3;
+            C = (cosh(sqrt(-z)) - 1)/(-z);
         else
-            S=1/factorial(3)-z/factorial(5)+z^2/factorial(7);
-            C=1/factorial(2)-z/factorial(4)+z^2/factorial(6);
+            S = 1/factorial(3) - z/factorial(5) + z^2/factorial(7);
+            C = 1/factorial(2) - z/factorial(4) + z^2/factorial(6);
         end
 
         % Y equation 
