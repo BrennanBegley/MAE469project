@@ -129,7 +129,7 @@ planetStateTable = table(planetNames, ...
 disp(planetStateTable)
 
 %% ------------------------------------------------------------------------
-%  PART 2: EXAMPLE EARTH -> MARS -> DSM -> EARTH -> JUPITER MISSION
+%  PART 2: EARTH -> MARS -> DSM -> EARTH -> JUPITER MISSION
 %  ------------------------------------------------------------------------
 selectedDepartureDate = datetime(2026,9,28, 23,12,00);
 departureJulianDate   = juliandate(selectedDepartureDate);
@@ -138,10 +138,9 @@ marsarivaltime=juliandate(datetime(2027,8,14,23,12,00));
 transfer1_TOF_TU=(marsarivaltime-departureJulianDate)/58.13;
 
 % User-selected mission design values.
-% transfer1_TOF_TU     = 4;  % Earth -> Mars
 marsToDSM_TOF_TU     = 50  / solarTU_days;  % Mars flyby -> DSM
 DSMtoEarth_TOF_TU    = 400/ solarTU_days;  % DSM -> Earth flyby
-EarthToJupiter_TOF_TU = 1500 / solarTU_days; % Earth flyby -> Jupiter
+EarthToJupiter_TOF_TU = 740 / solarTU_days; % Earth flyby -> Jupiter
 
 earthParkingOrbitAlt_km   = 500;
 marsFlybyAltitude_km      = 100;
@@ -260,28 +259,14 @@ fprintf('RAAN [deg]: %g\n', rad2deg(transfer4_RAAN));
 fprintf('Argument of periapsis [deg]: %g\n', rad2deg(transfer4_argPeri));
 fprintf('True anomaly [deg]: %g\n', rad2deg(transfer4_trueAnom));
 
-%% Search Earth->Jupiter TOF until spacecraft and Jupiter line up
-[bestTOF_days, bestTOF_TU, bestSeparation_AU, ...
-    Earth_final_r, Earth_final_v, Mars_final_r, Mars_final_v, ...
+%% Earth->Jupiter 
+[Earth_final_r, Earth_final_v, Mars_final_r, Mars_final_v, ...
     Jupiter_final_r, Jupiter_final_v, SC_final_r, SC_final_v] = ...
-    iterate_jupiter_tof_match( ...
-    earthAfterFlybyPlot_r, earthAfterFlybyPlot_v, ...
+    planet_plotmarssmall(earthAfterFlybyPlot_r, earthAfterFlybyPlot_v, ...
     marsAfterFlybyPlot_r, marsAfterFlybyPlot_v, ...
     jupiterAfterFlybyPlot_r, jupiterAfterFlybyPlot_v, ...
-    plotStart_TU, plotResolution, ...
-    scBeforeEarthFlyby_r, scAfterEarthFlyby_v, ...
-    100, 1800, 5, ...      % start day, end day, step
-    solarTU_days, ...
-    true, ...              % make plots
-    4, Jupiter, Sun);
-
-EarthToJupiter_TOF_TU = bestTOF_TU;
-
-fprintf('\n--- Best Earth to Jupiter Match ---\n');
-fprintf('Best TOF [days]: %g\n', bestTOF_days);
-fprintf('Best TOF [TU]: %g\n', bestTOF_TU);
-fprintf('Best final separation [AU]: %g\n', bestSeparation_AU);
-
+    plotStart_TU, EarthToJupiter_TOF_TU, plotResolution, ...
+    scBeforeEarthFlyby_r, scAfterEarthFlyby_v, 4);
 jupiterVinf_kms = (SC_final_v - Jupiter_final_v) * AU_TU_to_kms;
 jupiterArrivalDeltaV_kms = deltavforcirculartohyperbolic( ...
     jupiterParkingOrbitAlt_km, Jupiter, jupiterVinf_kms);
@@ -315,7 +300,85 @@ plot_full_mission_3d( ...
     transfer3_r2, scAfterEarthFlyby_v, EarthToJupiter_TOF_TU, ... % Leg 4: Earth -> Jupiter
     ...
     1000,5);
+%% ========================================================================
+% RESULTS TABLES FOR REPORT
+% ========================================================================
 
+%% -------------------------------
+% Table 1: Key Mission Event States
+% -------------------------------
+eventNames = ["Earth Departure";
+              "Mars Flyby";
+              "DSM";
+              "Earth Flyby";
+              "Jupiter Arrival"];
+
+eventR = [earthDepart_r(:)';
+          marsArrival_r(:)';
+          spacecraftAtDSM_r(:)';
+          transfer3_r2(:)';
+          Jupiter_final_r(:)'];
+
+eventV = [earthDepart_v(:)';
+          marsArrival_v(:)';
+          spacecraftAtDSM_v(:)';
+          EarthFlyby_v(:)';
+          Jupiter_final_v(:)'];
+
+missionEventTable = table( ...
+    eventNames, ...
+    eventR(:,1), eventR(:,2), eventR(:,3), ...
+    eventV(:,1), eventV(:,2), eventV(:,3), ...
+    'VariableNames', {'Event','rx_AU','ry_AU','rz_AU', ...
+                      'vx_AU_per_TU','vy_AU_per_TU','vz_AU_per_TU'});
+
+disp('================ Mission Event Table ================')
+disp(missionEventTable)
+
+%% -------------------------------
+% Table 2: Transfer Orbit Elements
+% -------------------------------
+transferNames = ["Leg 1 Earth->Mars";
+                 "Leg 2 Mars->DSM";
+                 "Leg 3 DSM->Earth";
+                 "Leg 4 Earth->Jupiter"];
+
+orbitElementTable = table( ...
+    transferNames, ...
+    [transfer1Struct.a; transfer2_a; transfer3Struct.a; transfer4_a], ...
+    [transfer1Struct.e; transfer2_e; transfer3Struct.e; transfer4_e], ...
+    rad2deg([transfer1Struct.inc; transfer2_i; transfer3Struct.inc; transfer4_i]), ...
+    rad2deg([transfer1Struct.OMEGA; transfer2_RAAN; transfer3Struct.OMEGA; transfer4_RAAN]), ...
+    rad2deg([transfer1Struct.omega; transfer2_argPeri; transfer3Struct.omega; transfer4_argPeri]), ...
+    'VariableNames', {'TransferLeg','a_AU','e','inc_deg','RAAN_deg','argPeri_deg'});
+
+disp('================ Transfer Orbit Elements ================')
+disp(orbitElementTable)
+
+%% -------------------------------
+% Table 3: TOF and Delta-V Summary
+% -------------------------------
+tofDays = [transfer1_TOF_TU;
+           marsToDSM_TOF_TU;
+           DSMtoEarth_TOF_TU;
+           EarthToJupiter_TOF_TU] * solarTU_days;
+
+deltaVSummaryTable = table( ...
+    ["Leg 1 Earth->Mars";
+     "Leg 2 Mars->DSM";
+     "Leg 3 DSM->Earth";
+     "Leg 4 Earth->Jupiter";
+     "TOTAL"], ...
+    [tofDays; sum(tofDays)], ...
+    [departureDeltaV_kms;
+     0;
+     DSM_deltaV_kms;
+     jupiterArrivalDeltaV_kms;
+     totalMissionDeltaV_kms], ...
+    'VariableNames', {'MissionSegment','TOF_days','DeltaV_kms'});
+
+disp('================ TOF and Delta-V Summary ================')
+disp(deltaVSummaryTable)
 %% ========================================================================
 %  LOCAL PLOTTING FUNCTIONS
 %  ========================================================================
