@@ -127,6 +127,13 @@ planetStateTable = table(planetNames, ...
                       'TrueAnomaly_deg'});
 
 disp(planetStateTable)
+plotStart_TU = 0;
+plotResolution = 500;
+Planet_TOF_final=1500;
+figure(7)
+planet_plot(Mercury_r, Mercury_v, Venus_r, Venus_v, Earth_r, Earth_v, ...
+    Mars_r, Mars_v, Jupiter_r, Jupiter_v, Saturn_r, Saturn_v, Uranus_r, Uranus_v, ...
+    Neptune_r, Neptune_v, Pluto_r, Pluto_v, plotStart_TU, Planet_TOF_final, plotResolution)
 
 %% ------------------------------------------------------------------------
 %  PART 2: EARTH -> MARS -> DSM -> EARTH -> JUPITER MISSION
