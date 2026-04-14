@@ -63,9 +63,9 @@ function [turnAngle, vInfOut_IJK, vInfIn_AU_TU, scDepartureHeliocentric_v] = ...
     % Convert back to heliocentric spacecraft velocity [AU/TU].
     scDepartureHeliocentric_v = (vInfOut_IJK + planetArrival_v * AUTUtoKms) / AUTUtoKms;
 
-    % Helpful diagnostic output for debugging/reporting.
-    fprintf('Flyby semilatus rectum p [km]: %g\n', p_sc);
-    fprintf('Incoming PQW position [km]: [%g, %g, %g]\n', r_pqw);
-    fprintf('Incoming PQW velocity [km/s]: [%g, %g, %g]\n', vInf_pqw_in);
-    fprintf('Outgoing V-infinity in IJK [km/s]: [%g, %g, %g]\n', vInfOut_IJK);
+    % % Helpful diagnostic output for debugging/reporting.
+    % fprintf('Flyby semilatus rectum p [km]: %g\n', p_sc);
+    % fprintf('Incoming PQW position [km]: [%g, %g, %g]\n', r_pqw);
+    % fprintf('Incoming PQW velocity [km/s]: [%g, %g, %g]\n', vInf_pqw_in);
+    % fprintf('Outgoing V-infinity in IJK [km/s]: [%g, %g, %g]\n', vInfOut_IJK);
 end
