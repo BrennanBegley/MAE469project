@@ -1,24 +1,45 @@
-%%
-% note depart date needs to be passed in as a julian date 
-function [earthdepartrijk,earthdepartvijk,marsdepartrijk,marsdepartvijk,marsarrivalrijk,marsarivalvijk,transferorbitearthtomarsstruc,earthtotransferorbit1deltaV,delmarsflyby,marsdeparthyperbolicexcessvelocity,marsarivalhyperbolicexcessvelocity,marsflybydepartscvelocityijk,transferscv1ijk,transferscv2ijk]=eathdepatruetomars(SUNAUtokm,Sunstruc,shortlong,earthj2000rijk,earthj2000vijk,marsj2000rijk,marsj2000vijk,departdate,transferorbit1TOF,earthstuc,marsstruc,earthcircularorbitalt,sunmucononical,AUTUtoKms,j2000date,hyperbloicradius )
-    %On the departure date 
-    departTOF=(departdate-j2000date)/58.13;
-    [earthdepartrijk,earthdepartvijk]=universalTOF(sunmucononical,departTOF,earthj2000rijk,earthj2000vijk); %AU AU/TU
-    [marsdepartrijk,marsdepartvijk]=universalTOF(sunmucononical,departTOF,marsj2000rijk,marsj2000vijk); %AU AU/TU
+function [earthDepart_r, earthDepart_v, marsDepart_r, marsDepart_v, ...
+          marsArrival_r, marsArrival_v, transferOrbitStruct, ...
+          earthDepartureDeltaV, marsTurnAngle, marsVinfOut, marsVinfIn, ...
+          marsFlybyDepartureScVelocity, transferScV1, transferScV2] = ...
+          eathdepatruetomars(SUNAUtokm, SunStruct, shortLong, ...
+          earthJ2000_r, earthJ2000_v, marsJ2000_r, marsJ2000_v, ...
+          departDateJulian, transferOrbit1TOF, earthStruct, marsStruct, ...
+          earthCircularOrbitAlt, sunMuCanonical, AUTUtoKms, ...
+          j2000DateJulian, hyperbolicRadius)
+%EATHDEPATRUETOMARS Build the first Earth-to-Mars leg of the mission.
+%   This helper computes the heliocentric states of Earth and Mars at the
+%   selected departure date, solves Lambert/Gauss for the transfer, then
+%   computes Earth departure delta-V and the Mars flyby turn.
+%
+% Notes:
+%   - The original filename/function name is preserved for compatibility.
+%   - Heliocentric quantities are mostly in AU and AU/TU.
+%   - Planet-centered flyby quantities are converted to km and km/s.
 
-    %mars position on arival date determined by TOF
-    [marsarrivalrijk,marsarivalvijk]=universalTOF(sunmucononical,transferorbit1TOF,marsdepartrijk,marsdepartvijk); %AU AU/TU
+    % Convert departure epoch from Julian date to canonical solar TU.
+    departTOF = (departDateJulian - j2000DateJulian) / 58.13;
 
-    %Guass and SC needed velocities at departure and arrival
-    [transferscv1ijk,transferscv2ijk,transferorbitearthtomarsstruc,transferorbitscr1ijk,transferorbitscr2ijk]= gaussspeedsandtransferorbitorbitalelements(earthdepartrijk,marsarrivalrijk,transferorbit1TOF,sunmucononical,shortlong);
+    % Propagate Earth and Mars from J2000 to the chosen departure date.
+    [earthDepart_r, earthDepart_v] = universalTOF(sunMuCanonical, departTOF, earthJ2000_r, earthJ2000_v);
+    [marsDepart_r,  marsDepart_v]  = universalTOF(sunMuCanonical, departTOF, marsJ2000_r,  marsJ2000_v);
 
-    %calculate the earth hyperbolic excess velocity
-    earthtotransferorbit1hyperbolicexess=(transferscv1ijk-earthdepartvijk)*AUTUtoKms;
+    % Propagate Mars further to the spacecraft arrival date.
+    [marsArrival_r, marsArrival_v] = universalTOF(sunMuCanonical, transferOrbit1TOF, marsDepart_r, marsDepart_v);
 
-    % calculate the earth needed delta v for circular orbit to heliocentric
-    [earthtotransferorbit1deltaV]= deltavforcirculartohyperbolic(earthcircularorbitalt,earthstuc,earthtotransferorbit1hyperbolicexess);
+    % Solve Gauss/Lambert for the transfer trajectory from Earth departure
+    % position to Mars arrival position over the selected time of flight.
+    [transferScV1, transferScV2, transferOrbitStruct, ~, ~] = ...
+        gaussspeedsandtransferorbitorbitalelements(earthDepart_r, marsArrival_r, transferOrbit1TOF, sunMuCanonical, shortLong);
 
-    % Calculate the hyperbolic turn angle for mars flyby
-    [delmarsflyby,marsdeparthyperbolicexcessvelocity,marsarivalhyperbolicexcessvelocity,marsflybydepartscvelocityijk]=hyperbolicturnangle(transferscv2ijk,marsarivalvijk,AUTUtoKms,hyperbloicradius,marsstruc,Sunstruc,SUNAUtokm);
+    % Hyperbolic excess velocity at Earth departure, in km/s.
+    earthDepartureVinf = (transferScV1 - earthDepart_v) * AUTUtoKms;
 
+    % Burn needed to leave Earth circular parking orbit onto the transfer.
+    earthDepartureDeltaV = deltavforcirculartohyperbolic(earthCircularOrbitAlt, earthStruct, earthDepartureVinf);
+
+    % Compute the Mars flyby geometry and outgoing heliocentric velocity.
+    [marsTurnAngle, marsVinfOut, marsVinfIn, marsFlybyDepartureScVelocity] = ...
+        hyperbolicturnangle(transferScV2, marsArrival_v, AUTUtoKms, ...
+        hyperbolicRadius, marsStruct, SunStruct, SUNAUtokm);
 end

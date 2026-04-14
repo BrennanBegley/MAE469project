@@ -1,54 +1,71 @@
-%%
-%the hyperbloicradius is the alt above the planet surface
-function [del,vdscinfIJK,vascinfijk,vscdeparthelocentric]=hyperbolicturnangle(scarivalvijk,planetarivalvijk,AUTUtoKms,hyperbloicradius,planetstruc,Sunstruc,SUNAUtokm)
-    
-    %calculate the body SOI
-    PlanetSOI=norm(planetstruc.a)*(planetstruc.mass/Sunstruc.mass)^(2/5);
+function [turnAngle, vInfOut_IJK, vInfIn_AU_TU, scDepartureHeliocentric_v] = ...
+    hyperbolicturnangle(scArrival_v, planetArrival_v, AUTUtoKms, flybyAltitude_km, planetStruct, SunStruct, SUNAUtokm)
+%HYPERBOLICTURNANGLE Compute a ballistic flyby turn and outgoing velocity.
+%   This function estimates the turn angle for an unpowered planetary flyby,
+%   rotates the incoming planet-relative hyperbolic excess velocity in the
+%   perifocal frame, and converts the result back to heliocentric velocity.
+%
+% Inputs:
+%   scArrival_v            Spacecraft heliocentric arrival velocity [AU/TU]
+%   planetArrival_v        Planet heliocentric arrival velocity [AU/TU]
+%   AUTUtoKms              AU/TU to km/s conversion factor
+%   flybyAltitude_km       Flyby periapsis altitude above the planet [km]
+%   planetStruct           Planet data structure
+%   SunStruct              Sun data structure
+%   SUNAUtokm              AU to km conversion factor
 
-    %calculate the spacecraft normalized radial vector in the planet frame 
-    SCmarsSOIframearivalrijk= -PlanetSOI*scarivalvijk/norm(scarivalvijk); %AU
+    % Sphere of influence radius in AU.
+    planetSOI_AU = norm(planetStruct.a) * (planetStruct.mass / SunStruct.mass)^(2/5);
 
-    %calculate the SC hyperbolic excess velocity
-    scarivalv=norm(scarivalvijk);         %AU/TU spacecraft velocity at arrival
-    planetarivalv=norm(planetarivalvijk); %AU/TUplanet velocity at arrival
-    vascinfijk=scarivalvijk-planetarivalvijk; %AU/TU
-    
-    %calculate the hyperbolic orbit OE 
-    [a,e,enorm,i,RAAN,argumentperi,trueanom]=orbitalelementscalc(SCmarsSOIframearivalrijk*SUNAUtokm,vascinfijk*AUTUtoKms,planetstruc.mu);
-    
-    % Calculate the perafocal frame 
-    % perafocal frame and spacecraft PQW velocity
-    p_sc=a*(1-enorm^2); %AU
-    fprintf('p_sc (AU): %g\n', p_sc/SUNAUtokm);
-    
-    r_scpqw=p_sc/(1+enorm*cos(trueanom)); %AU
-    Rsc_pqwplanetframe=[r_scpqw*cos(trueanom); r_scpqw*sin(trueanom); 0];
-    P_unitvector= [-sin(trueanom); 0; 0];
-    Q_unitvector= [0; enorm+cos(trueanom); 0];
-    V_scPQWplanetframe=sqrt(planetstruc.mu/(p_sc))*(P_unitvector+Q_unitvector); %km/s
+    % Approximate incoming asymptote position direction in the planet frame.
+    scSOIarrival_r = -planetSOI_AU * scArrival_v / norm(scArrival_v);
 
-    % Print header comment and the computed PQW vectors/values
-    fprintf('%% Perifocal frame and spacecraft PQW velocity results\n');
-    fprintf('Rsc_pqwplanetframe (km): [%g, %g, %g]\n', Rsc_pqwplanetframe);
-    fprintf('V_scPQWplanetframe (km/s): [%g, %g, %g]\n', V_scPQWplanetframe);
-    fprintf('p_sc (AU): %g, r_scpqw (AU): %g, eccentricity e: %g, true anomaly (rad): %g\n', p_sc, r_scpqw, enorm, trueanom);
+    % Incoming hyperbolic excess velocity in the planet-centered frame.
+    vInfIn_AU_TU = scArrival_v - planetArrival_v;
 
-    %calculate the hyperbolic turn 
-    rp_sc_hyperbolic= planetstruc.r+hyperbloicradius; %km
-    del= 2*asin(1/(1+((rp_sc_hyperbolic)*norm(vascinfijk*AUTUtoKms)^2)/planetstruc.mu)); %rads
-    
-    %hyperbolic transformation matrix
-    H=[cos((del)), -sin((del)), 0; sin((del)), cos((del)), 0; 0,0,1];
-    
-    %hyperbolic speed PQW
-    vdscinfpqw=H*V_scPQWplanetframe %km/s
+    % Build the incoming hyperbolic orbit using planet-centered units.
+    [a, ~, eMag, inc, RAAN, argPeri, trueAnom] = ...
+        orbitalelementscalc(scSOIarrival_r * SUNAUtokm, vInfIn_AU_TU * AUTUtoKms, planetStruct.mu);
 
-    %PQW to IJK (angles are in radians)
-    R1 = [cos(RAAN)*cos(argumentperi)-sin(RAAN)*sin(argumentperi)*cos(i), -cos(RAAN)*sin(argumentperi)-sin(RAAN)*cos(argumentperi)*cos(i),  sin(RAAN)*sin(i);
-          sin(RAAN)*cos(argumentperi)+cos(RAAN)*sin(argumentperi)*cos(i), -sin(RAAN)*sin(argumentperi)+cos(RAAN)*cos(argumentperi)*cos(i), -cos(RAAN)*sin(i);
-          sin(argumentperi)*sin(i),                                         cos(argumentperi)*sin(i),                                        cos(i)];
-    
-    %PQW to IJK 
-    vdscinfIJK=R1*vdscinfpqw %km/s
-    vscdeparthelocentric=(vdscinfIJK+planetarivalvijk*AUTUtoKms)/AUTUtoKms %AU/TU
+    % Semilatus rectum and instantaneous PQW state for the incoming branch.
+    p_sc = a * (1 - eMag^2);      % [km]
+    r_pqw_mag = p_sc / (1 + eMag*cos(trueAnom));
+    r_pqw = [r_pqw_mag*cos(trueAnom); r_pqw_mag*sin(trueAnom); 0];
+
+    % Velocity in the perifocal frame.
+    P_term = [-sin(trueAnom); 0; 0];
+    Q_term = [0; eMag + cos(trueAnom); 0];
+    vInf_pqw_in = sqrt(planetStruct.mu / p_sc) * (P_term + Q_term); % [km/s]
+
+    % Ballistic flyby turn angle from hyperbolic geometry.
+    periapsisRadius_km = planetStruct.r + flybyAltitude_km;
+    turnAngle = 2 * asin(1 / (1 + periapsisRadius_km * norm(vInfIn_AU_TU * AUTUtoKms)^2 / planetStruct.mu));
+
+    % Rotate the asymptotic velocity vector by the flyby turn angle.
+    H = [cos(turnAngle), -sin(turnAngle), 0; ...
+         sin(turnAngle),  cos(turnAngle), 0; ...
+         0,               0,              1];
+    vInf_pqw_out = H * vInf_pqw_in;
+
+    % PQW -> IJK rotation matrix.
+    R_pqw_to_ijk = [ ...
+        cos(RAAN)*cos(argPeri)-sin(RAAN)*sin(argPeri)*cos(inc), ...
+       -cos(RAAN)*sin(argPeri)-sin(RAAN)*cos(argPeri)*cos(inc), ...
+        sin(RAAN)*sin(inc); ...
+        sin(RAAN)*cos(argPeri)+cos(RAAN)*sin(argPeri)*cos(inc), ...
+       -sin(RAAN)*sin(argPeri)+cos(RAAN)*cos(argPeri)*cos(inc), ...
+       -cos(RAAN)*sin(inc); ...
+        sin(argPeri)*sin(inc), cos(argPeri)*sin(inc), cos(inc)];
+
+    % Outgoing asymptotic velocity in the inertial frame [km/s].
+    vInfOut_IJK = R_pqw_to_ijk * vInf_pqw_out;
+
+    % Convert back to heliocentric spacecraft velocity [AU/TU].
+    scDepartureHeliocentric_v = (vInfOut_IJK + planetArrival_v * AUTUtoKms) / AUTUtoKms;
+
+    % Helpful diagnostic output for debugging/reporting.
+    fprintf('Flyby semilatus rectum p [km]: %g\n', p_sc);
+    fprintf('Incoming PQW position [km]: [%g, %g, %g]\n', r_pqw);
+    fprintf('Incoming PQW velocity [km/s]: [%g, %g, %g]\n', vInf_pqw_in);
+    fprintf('Outgoing V-infinity in IJK [km/s]: [%g, %g, %g]\n', vInfOut_IJK);
 end

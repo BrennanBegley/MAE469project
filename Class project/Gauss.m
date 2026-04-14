@@ -1,27 +1,36 @@
-%% Gauss TOF Equations 
-% pass in the R1 R2 vector 
-function [v1,v2]= Gauss(r1,r2,TOF,short,mu)
-   t=0;
-   tol=1*10^(-10);
-   i=1;
-   rdot=dot(r1,r2);
-   normr2=norm(r2);
-   normr1=norm(r1);
+function [v1, v2] = Gauss(r1, r2, TOF, short, mu)
+%GAUSS Solve the two-point boundary-value transfer using Gauss/Lambert form.
+%   [v1, v2] = Gauss(r1, r2, TOF, short, mu) returns the transfer velocity
+%   vectors at r1 and r2 for a specified time of flight.
+%
+% Inputs:
+%   r1, r2   Initial and final position vectors
+%   TOF      Time of flight in the same canonical time units as mu
+%   short    1 for short-way transfer, otherwise long-way transfer
+%   mu       Gravitational parameter
 
-%delta theta calculations
-   if short==1
-       delTheta=acos(rdot/(normr2*normr1));
-   else
-       delThetatemp=acos(rdot/(normr2*normr1));
-       delTheta=2*pi-delThetatemp;
-   end
+    t = 0;
+    tol = 1e-10;
 
-% A calculation 
-   A=sqrt(normr2*normr1)*sin(delTheta)/sqrt(1-cos(delTheta));
-   z=1;
+    rdot = dot(r1, r2);
+    normr1 = norm(r1);
+    normr2 = norm(r2);
 
+    % Transfer angle between the two position vectors.
+    if short == 1
+        delTheta = acos(rdot / (normr1 * normr2));
+    else
+        delThetaShort = acos(rdot / (normr1 * normr2));
+        delTheta = 2*pi - delThetaShort;
+    end
 
-   while abs(TOF - t) >= tol
+    % Standard Gauss/Lambert auxiliary quantity A.
+    A = sqrt(normr1 * normr2) * sin(delTheta) / sqrt(1 - cos(delTheta));
+
+    % Initial guess for the universal variable z.
+    z = 1;
+
+    while abs(TOF - t) >= tol
         % Stumpff functions S(z) and C(z).
         if z > 0
             S = (sqrt(z) - sin(sqrt(z))) / sqrt(z^3);
@@ -35,42 +44,31 @@ function [v1,v2]= Gauss(r1,r2,TOF,short,mu)
             C = 1/factorial(2) - z/factorial(4) + z^2/factorial(6);
         end
 
-        % Y equation 
-        y=normr2+normr1-A*(1-z*S)/sqrt(C);
-        
-        % X Equation 
-        x=sqrt(y/C);
-        
-        % time equation
-        t= (x^3*S+A*sqrt(y))/sqrt(mu);
-        
-        % ds equation
-        ds=(C-3*S)/(2*z);
-        
-        % dc equation 
-        dc=(1-z*S-2*C)/(2*z);
-        
-        % dt equation 
-        term1=x^3*(ds-(3*S*dc)/(2*C));
-        term2=A/8*((3*S*sqrt(y))/C+A/x);
-        dt=(term1+term2)/sqrt(mu);
-        
-        % Iteration equations 
-        zo = z;
-        z = zo + (TOF - t) / dt;    
-        i = i + 1;
+        % Intermediate Gauss/Lambert quantities.
+        y = normr2 + normr1 - A * (1 - z*S) / sqrt(C);
+        x = sqrt(y / C);
+
+        % Time-of-flight function and its derivative.
+        t = (x^3 * S + A * sqrt(y)) / sqrt(mu);
+        ds = (C - 3*S) / (2*z);
+        dc = (1 - z*S - 2*C) / (2*z);
+        dt = (x^3 * (ds - (3*S*dc)/(2*C)) + A/8 * ((3*S*sqrt(y))/C + A/x)) / sqrt(mu);
+
+        % Newton iteration on z.
+        z = z + (TOF - t) / dt;
     end
-    
-   f=1-(y/normr1);
-   g=A*sqrt(y/mu);
-   fdot=(-sqrt(mu)*x)/(normr2*normr1)*(1-z*S);
-   gdot=1-(y/normr2);
 
-   if abs(f*gdot - fdot*g - 1) > 1e-8
-       fprintf('Universal TOF error f g check not correct')
-   end
+    % Lagrange f and g coefficients.
+    f    = 1 - (y / normr1);
+    g    = A * sqrt(y / mu);
+    fdot = (-sqrt(mu) * x) / (normr2 * normr1) * (1 - z*S);
+    gdot = 1 - (y / normr2);
 
+    if abs(f*gdot - fdot*g - 1) > 1e-8
+        fprintf('Universal TOF error: f and g consistency check failed.\n')
+    end
 
-   v1=(r2-f*r1)/g;
-   v2=(gdot*r2-r1)/g;
+    % Transfer velocities at the boundary points.
+    v1 = (r2 - f*r1) / g;
+    v2 = (gdot*r2 - r1) / g;
 end
