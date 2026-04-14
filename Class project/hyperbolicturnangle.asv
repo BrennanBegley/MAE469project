@@ -19,7 +19,6 @@ function [del,vdscinfIJK,vascinfijk,vscdeparthelocentric]=hyperbolicturnangle(sc
     % Calculate the perafocal frame 
     % perafocal frame and spacecraft PQW velocity
     p_sc=a*(1-enorm^2); %AU
-    fprintf('p_sc (AU): %g\n', p_sc/SUNAUtokm);
     
     r_scpqw=p_sc/(1+enorm*cos(trueanom)); %AU
     Rsc_pqwplanetframe=[r_scpqw*cos(trueanom); r_scpqw*sin(trueanom); 0];
@@ -50,5 +49,5 @@ function [del,vdscinfIJK,vascinfijk,vscdeparthelocentric]=hyperbolicturnangle(sc
     
     %PQW to IJK 
     vdscinfIJK=R1*vdscinfpqw %km/s
-    vscdeparthelocentric=(vdscinfIJK+planetarivalvijk*AUTUtoKms)/AUTUtoKms %AU/TU
+    vscdeparthelocentric=(vdscinfIJK+planetarivalvijk)/AUTUtoKms %AU/TU
 end

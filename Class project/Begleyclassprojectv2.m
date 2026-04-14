@@ -1,3 +1,7 @@
+clc
+clear
+close all
+
 %% Planet Parameters 
 % standardized format for the planets starting Parameters (Angles in
 % radians)
@@ -8,6 +12,9 @@ sunmucononical = 1;
 SunTUtodays= 58.13; %Days
 SunAU_TUtokm_s= 29.79; %km/s
 AUtoKm= 1.495*10^8; %Km
+Sun = struct( ...
+    'mass', 1.989 * 10^30, ... % kg
+    'mu', 1.327 * 10^11); % km^3/s^2
 
 Mercury = struct( ...
     'a', 0.387099, ...
@@ -35,7 +42,8 @@ Earth = struct( ...
     'omega', deg2rad(114.20783), ...
     'theta', deg2rad(-2.48284), ...
     'mu', 398600.435507,...
-    'r', 6378); % km^3/s^2
+    'r', 6378,...
+    'mass', 5.972*10^24); % km^3/s^2
 
 Mars = struct( ...
     'a', 1.523662, ...
@@ -44,8 +52,9 @@ Mars = struct( ...
     'OMEGA', deg2rad(49.57854), ...
     'omega', deg2rad(286.4623), ...
     'theta', deg2rad(19.41248), ...
-    'mu', 42828.4,...
-    'r', 3380); % km^3/s^2 
+    'mu', 4.305*10^4,...
+    'r', 3380,...
+    'mass', 6.41693*10^23); % km^3/s^2 
 
 Jupiter = struct( ...
     'a', 5.203363, ...
@@ -55,7 +64,8 @@ Jupiter = struct( ...
     'omega', deg2rad(-85.8023), ...
     'theta', deg2rad(19.55053), ...
     'mu', 1.26713*10^8,...
-    'r', 71370); % km^3/s^2 
+    'r', 71370, ...
+    'mass', 1.89852*10^27); % km^3/s^2 
 
 Saturn = struct( ...
     'a', 9.537070, ...
@@ -197,30 +207,34 @@ disp(T)
 
 
 %% MAIN CODE SECTION 
-Selecteddepatruedate= datetime(2027,1,25,23,12,00);
+Selecteddepatruedate= datetime(2033,6,04,07,00,00);
 departjulidate= juliandate(Selecteddepatruedate)
-transferflightdate= datetime(2028,3,25,23,12,00);
-transferorbit1TOF = (juliandate(transferflightdate) - departjulidate) / SunTUtodays
-j2000TOF=(departjulidate-J2000epoch)/SunTUtodays;
-earthcircularorbitalt= 200; %km
-hyperbloicradius=150; %km
+transferflightdate= datetime(2032,8,25,23,12,00);
+transferorbit1TOF = 250/58.13
+j2000TOF=(departjulidate-J2000epoch)/SunTUtodays
+earthcircularorbitalt= 500; %km
+hyperbloicradius=11; %km
 [Jupiterproblem4ar,Jupiterproblem4av]=universalTOF(sunmucononical,j2000TOF,jupiterj2000r,jupiterj2000v);
-
-[earthdepartrijk,earthdepartvijk,marsdepartrijk,marsdepartvijk,marsarrivalrijk,marsarivalvijk,transferorbitearthtomarsstruc,earthtotransferorbit1deltaV,delmarsflyby,marsdeparthyperbolicexcessvelocity,marsarivalhyperbolicexcessvelocity,marsflybydepartscvelocityijk,transferscv1ijk]=...
- eathdepatruetomars(earthj2000r,earthj2000v,marsj2000r,marsj2000v,departjulidate,transferorbit1TOF,Earth,Mars,earthcircularorbitalt,sunmucononical,SunAU_TUtokm_s,J2000epoch,hyperbloicradius );
+shortlong=1;
+[earthdepartrijk,earthdepartvijk,marsdepartrijk,marsdepartvijk,marsarrivalrijk,marsarivalvijk,transferorbitearthtomarsstruc,earthtotransferorbit1deltaV,delmarsflyby,marsdeparthyperbolicexcessvelocity,marsarivalhyperbolicexcessvelocity,marsflybydepartscvelocityijk,transferscv1ijk,transferscv2ijk]=...
+ eathdepatruetomars(AUtoKm,Sun,shortlong,earthj2000r,earthj2000v,marsj2000r,marsj2000v,departjulidate,transferorbit1TOF,Earth,Mars,earthcircularorbitalt,sunmucononical,SunAU_TUtokm_s,J2000epoch,hyperbloicradius );
 
 % Print outputs to command window with clear labels
 fprintf('\n--- Earth to Mars Transfer Outputs ---\n');
-fprintf('earthdepartrijk (km):\n'); disp(earthdepartrijk);
+fprintf('earthdepartrijk (AU/TU):\n'); disp(earthdepartrijk);
 fprintf('earthdepartvijk (km/s):\n'); disp(earthdepartvijk);
 fprintf('marsarrivalrijk (km):\n'); disp(marsarrivalrijk);
 fprintf('marsarivalvijk (km/s):\n'); disp(marsarivalvijk);
+fprintf('\ntransferscv2ijk (AU/TU):\n');
+disp(transferscv2ijk);
 fprintf('transferorbitearthtomarsstruc (struct):\n'); disp(transferorbitearthtomarsstruc);
 fprintf('earthtotransferorbit1deltaV (km/s):\n'); disp(earthtotransferorbit1deltaV);
 fprintf('delmarsflyby ():\n'); disp(rad2deg(delmarsflyby));
 fprintf('marsdeparthyperbolicexcessvelocity (km/s):\n'); disp(marsdeparthyperbolicexcessvelocity);
 fprintf('marsarivalhyperbolicexcessvelocity (km/s):\n'); disp(marsarivalhyperbolicexcessvelocity);
-fprintf('marsflybydepartscvelocityijk (AU/TU):\n'); disp(marsflybydepartscvelocityijk);
+fprintf('marsflybydepartscvelocityijk (AU/TU):\n'); disp(marsflybydepartscvelocityijk*SunAU_TUtokm_s);
+
+
 
 
 
@@ -240,7 +254,149 @@ Planet_TOF_res     = 500;  % resolution
 figure;
 
 [Er, Ev, Mr, Mv, Jr, Jv, SCr, SCv] = planet_plotearthsmall( earthdepartrijk, earthdepartvijk, marsdepartrijk, marsdepartvijk, Jupiterproblem4ar, Jupiterproblem4av, Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res,earthdepartrijk,transferscv1ijk );
-planet_plotmarssmall(Er, Ev, Mr, Mv, Jr, Jv,Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res, SCr, marsflybydepartscvelocityijk)
+
+
+
+%%
+
+% Caculate the OE for the new transfer orbit 
+[trasorbit2a,trasorbit2e,trasorbit2enorm,trasorbit2i,trasorbit2RAAN,trasorbit2argumentperi,trasorbit2trueanom]=orbitalelementscalc(marsarrivalrijk,marsflybydepartscvelocityijk,sunmucononical);
+
+% Print the orbital elements with clear labels
+fprintf('\n--- Transfer Orbit from Mars Flyby Orbital Elements ---\n');
+fprintf('Semi-major axis, a (AU):\n'); disp(trasorbit2a);
+fprintf('Eccentricity, e (vector):\n'); disp(trasorbit2e);
+fprintf('Eccentricity, e (norm):\n'); disp(trasorbit2enorm);
+fprintf('Inclination, i (deg):\n'); disp(rad2deg(trasorbit2i));
+fprintf('RAAN (deg):\n'); disp(rad2deg(trasorbit2RAAN));
+fprintf('Argument of Periapsis (deg):\n'); disp(rad2deg(trasorbit2argumentperi));
+fprintf('True Anomaly (deg):\n'); disp(rad2deg(trasorbit2trueanom));
+
+MarstoDSMTOF=70/58.13; %TU
+
+% Propagate Jupiter and Earth (and spacecraft) for MarstoDSMTOF
+[earthmarstoDSMrijk, earthmarstoDSMvijk] = universalTOF(sunmucononical, MarstoDSMTOF, Er, Ev);
+[SpaccraftmarstoDSMrijk, SpaccraftmarstoDSMvijk] = universalTOF(sunmucononical, MarstoDSMTOF, SCr, marsflybydepartscvelocityijk);
+
+% Also propagate Jupiter for the same TOF
+[JupitermarstoDSMrijk, JupitermarstoDSMvijk] = universalTOF(sunmucononical, MarstoDSMTOF, Jr, Jv);
+
+% Also propagate Mars  — ensure Mars state propagated from Mr,Mv
+[MarsmarstoDSMrijk, MarsmarstoDSMvijk] = universalTOF(sunmucononical, MarstoDSMTOF, Mr, Mv);
+
+%propagate earthforward for the DSMToeart TOF
+DSMtoEarthTOF=411/58.13 %TU
+[Earthattransferorbit3rijk,Earthattransferorbit3vijk]=universalTOF(sunmucononical,DSMtoEarthTOF,earthmarstoDSMrijk,earthmarstoDSMvijk)
+short=1;
+[transferorbit3scv1ijk,transferorbit3scv2ijk,transferorbit3struc,transferorbitorbit3scr1ijk,transferorbitorbit3scr2ijk]= gaussspeedsandtransferorbitorbitalelements(SpaccraftmarstoDSMrijk,Earthattransferorbit3rijk,DSMtoEarthTOF,sunmucononical,shortlong);
+
+
+% --- Convert angles from radians to degrees ---
+i_deg     = rad2deg(transferorbit3struc.inc);
+RAAN_deg  = rad2deg(transferorbit3struc.OMEGA);
+w_deg     = rad2deg(transferorbit3struc.omega);
+ta1_deg   = rad2deg(transferorbit3struc.theta);
+
+
+% --- Print results ---
+fprintf('\n===== Transfer Orbit 3 Results =====\n');
+
+fprintf('\nVelocity at r1 (AU/TU): [%g, %g, %g]\n', transferorbit3scv1ijk);
+fprintf('Velocity at r2 (AU/TU): [%g, %g, %g]\n', transferorbit3scv2ijk);
+
+fprintf('\nOrbital Elements:\n');
+fprintf('Semi-major axis (AU): %g\n', transferorbit3struc.a);
+fprintf('Eccentricity: %g\n', transferorbit3struc.e);
+fprintf('Inclination (deg): %g\n', i_deg);
+fprintf('RAAN (deg): %g\n', RAAN_deg);
+fprintf('Argument of Periapsis (deg): %g\n', w_deg);
+fprintf('True Anomaly at r1 (deg): %g\n', ta1_deg);
+
+
+
+[Earth_final_r, Earth_final_v,Mars_final_r, Mars_final_v,Jupiter_final_r, Jupiter_final_v,SC_final_r, SC_final_v]=planet_plotmarssmall(Er, Ev, Mr, Mv, Jr, Jv,Planet_TOF_inital, MarstoDSMTOF, Planet_TOF_res, SCr, marsflybydepartscvelocityijk,2);
+
+
+%calculate the delta for the DSM 
+DSMdeltav = abs(norm(transferorbit3scv1ijk) - norm(SpaccraftmarstoDSMvijk)) * SunAU_TUtokm_s; % km/s
+fprintf('\n--- DSM Delta-V ---\n');
+fprintf('Delta-V for DSM (km/s): %g\n', DSMdeltav);
+
+[Earth_final_r, Earth_final_v,Mars_final_r, Mars_final_v,Jupiter_final_r, Jupiter_final_v,SC_final_r, SC_final_v]=planet_plotmarssmall(Earth_final_r, Earth_final_v, Mars_final_r, Mars_final_v, Jupiter_final_r, Jupiter_final_v,Planet_TOF_inital, DSMtoEarthTOF, Planet_TOF_res, SC_final_r, transferorbit3scv1ijk,3);
+
+earthhyperbloicradius=8.5; %km
+
+[earthdel,earthvdscinfIJK,earthvascinfijk,earthvscdeparthelocentric]=hyperbolicturnangle(transferorbit3scv2ijk,Earthattransferorbit3vijk,SunAU_TUtokm_s,earthhyperbloicradius,Earth,Sun,AUtoKm);
+
+%calculate the OE for the 4th trasfer orbit (earthflyby to jupiter)
+[trasorbit4a,trasorbit4e,trasorbit4enorm,trasorbit4i,trasorbit4RAAN,trasorbit4argumentperi,trasorbit4trueanom]=orbitalelementscalc(transferorbitorbit3scr2ijk,earthvscdeparthelocentric,sunmucononical);
+
+% Print the orbital elements with clear labels
+fprintf('\n--- Transfer Orbit from Eath Flyby Orbital Elements ---\n');
+fprintf('Semi-major axis, a (AU):\n'); disp(trasorbit4a);
+fprintf('Eccentricity, e (vector):\n'); disp(trasorbit4e);
+fprintf('Eccentricity, e (norm):\n'); disp(trasorbit4enorm);
+fprintf('Inclination, i (deg):\n'); disp(rad2deg(trasorbit4i));
+fprintf('RAAN (deg):\n'); disp(rad2deg(trasorbit4RAAN));
+fprintf('Argument of Periapsis (deg):\n'); disp(rad2deg(trasorbit4argumentperi));
+fprintf('True Anomaly (deg):\n'); disp(rad2deg(trasorbit4trueanom));
+
+%TOF for earth to jupiter 
+EarthtojupiterTOF=720/58.13; %TU
+
+[Earth_final_r, Earth_final_v,Mars_final_r, Mars_final_v,Jupiter_final_r, Jupiter_final_v,SC_final_r, SC_final_v]=planet_plotmarssmall(Earth_final_r, Earth_final_v, Mars_final_r, Mars_final_v, Jupiter_final_r, Jupiter_final_v,Planet_TOF_inital, EarthtojupiterTOF, Planet_TOF_res, SC_final_r, earthvscdeparthelocentric,4);
+
+
+jupitercircularorbitalt=10000; %km 
+jupiterhyperbolicexcessvelocity=(SC_final_v-Jupiter_final_v)*SunAU_TUtokm_s
+
+
+jupiterdeltav = deltavforcirculartohyperbolic(jupitercircularorbitalt, Jupiter, jupiterhyperbolicexcessvelocity);
+fprintf('\nDelta-V to go from Jupiter circular orbit to hyperbolic (km/s): %g\n', jupiterdeltav);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 %% Display plot of the planets
 % Planet_TOF_inital=168; %start of TOF (sun TU)
@@ -378,8 +534,8 @@ function [Earth_final_r, Earth_final_v, ...
           Jupiter_final_r, Jupiter_final_v, ...
           SC_final_r, SC_final_v] = ...
           planet_plotmarssmall(Earth_r, Earth_v, Mars_r, Mars_v, Jupiter_r, Jupiter_v, ...
-          Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res, Spacecraft_r, Spacecraft_v)
-    figure(2)
+          Planet_TOF_inital, Planet_TOF_final, Planet_TOF_res, Spacecraft_r, Spacecraft_v,n)
+    figure(n)
     clf
     set(gcf, 'Color', [0.06 0.06 0.06]);
 
