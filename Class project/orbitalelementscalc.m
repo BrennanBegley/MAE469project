@@ -14,7 +14,7 @@ function[a,e,enorm,i,RAAN,argumentperi,trueanom]=orbitalelementscalc(rijk,vijk,m
     a=-mu/(2*energy);
     i=acos(dot(k,h)/hnorm);
     if nnorm == 0
-        RAAN = 'undefined';
+        RAAN = NaN;
     else
         RAAN = acos(dot([1 0 0],n)/nnorm);
         if n(2)<0
@@ -23,7 +23,7 @@ function[a,e,enorm,i,RAAN,argumentperi,trueanom]=orbitalelementscalc(rijk,vijk,m
     end
     
     if enorm == 0 || nnorm == 0
-        argumentperi = 'undefined';
+        argumentperi = NaN;
     else
         argumentperi = acos(dot(n,e)/(nnorm*enorm));
         if e(3)<0

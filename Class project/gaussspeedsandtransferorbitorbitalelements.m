@@ -1,11 +1,11 @@
 
 
-function [transferscv1ijk,transferscv2ijk,transferorbitstruc,transferorbitscr1ijk,transferorbitscr2ijk]= gaussspeedsandtransferorbitorbitalelements(departureposr1ijk,arivalpos2ijk,TOF,sunmu)
-    short=1;
+function [transferscv1ijk,transferscv2ijk,transferorbitstruc,transferorbitscr1ijk,transferorbitscr2ijk]= gaussspeedsandtransferorbitorbitalelements(departureposr1ijk,arivalpos2ijk,TOF,sunmu,shortlong)
+    
     transferorbitscr1ijk=departureposr1ijk;
     transferorbitscr2ijk=arivalpos2ijk;
     %Gauss transfer orbit velocities 
-    [transferscv1ijk,transferscv2ijk]=Gauss(departureposr1ijk,arivalpos2ijk,TOF,short,sunmu);
+    [transferscv1ijk,transferscv2ijk]=Gauss(departureposr1ijk,arivalpos2ijk,TOF,shortlong,sunmu);
     
     %orbital elements of transfer orbit 
     [a,~,e,i,RAAN,argumentperi,trueanom]=orbitalelementscalc(departureposr1ijk,transferscv1ijk,sunmu);
