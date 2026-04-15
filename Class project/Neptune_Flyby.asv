@@ -317,18 +317,21 @@ fprintf('Earth departure delta-V [km/s]: %g\n', departureDeltaV_kms);
 fprintf('DSM delta-V [km/s]: %g\n', DSM_deltaV_kms);
 fprintf('Jupiter arrival delta-V [km/s]: %g\n', jupiterArrivalDeltaV_kms);
 fprintf('Total mission delta-V [km/s]: %g\n', totalMissionDeltaV_kms);
+
+
 %% ========================================================================
 % FULL MISSION 3D PLOT
 % ========================================================================
 plot_full_mission_3d( ...
     earthDepart_r, earthDepart_v, ...                  % Earth at launch
     marsDepart_r, marsDepart_v, ...                    % Mars at launch epoch
-    Jupiter_departure_r, Jupiter_departure_v, ...      % Jupiter at launch epoch
+    Jupiter_departure_r, Jupiter_departure_v, Neptune_departure_r, Neptune_departure_v...      % Jupiter at launch epoch
     ...
     earthDepart_r, transfer1_v1, transfer1_TOF_TU, ...            % Leg 1: Earth -> Mars
     marsArrival_r, scAfterMarsFlyby_v, marsToDSM_TOF_TU, ...      % Leg 2: Mars -> DSM
     spacecraftAtDSM_r, transfer3_v1, DSMtoEarth_TOF_TU, ...       % Leg 3: DSM -> Earth
     transfer3_r2, scAfterEarthFlyby_v, EarthToJupiter_TOF_TU, ... % Leg 4: Earth -> Jupiter
+    
     ...
     1000,5);
 %% ========================================================================
@@ -471,7 +474,7 @@ function [Earth_final_r, Earth_final_v, ...
           Jupiter_final_r, Jupiter_final_v,Neptune_final_r, Neptune_final_v, ...
           SC_final_r, SC_final_v] = ...
           planet_plotNeptunesmall(Earth_r, Earth_v, Mars_r, Mars_v, ...
-          Jupiter_r, Jupiter_v, Planet_TOF_initial, Planet_TOF_final, ...
+          Jupiter_r, Jupiter_v, Neptune_r, Neptune_v, Planet_TOF_initial, Planet_TOF_final, ...
           Planet_TOF_res, Spacecraft_r, Spacecraft_v, figNumber)
 % Same plotting helper as above, but allows caller to choose figure number.
 
@@ -485,10 +488,12 @@ function [Earth_final_r, Earth_final_v, ...
     Earth_orbit_r   = zeros(3, length(TOF));
     Mars_orbit_r    = zeros(3, length(TOF));
     Jupiter_orbit_r = zeros(3, length(TOF));
+    Neptune_orbit_r = zeros(3, length(TOF));
     SC_orbit_r      = zeros(3, length(TOF));
 
     Earth_orbit_v   = zeros(3, length(TOF));
     Mars_orbit_v    = zeros(3, length(TOF));
+    Neptune_orbit_v = zeros(3, length(TOF));
     Jupiter_orbit_v = zeros(3, length(TOF));
     SC_orbit_v      = zeros(3, length(TOF));
 
@@ -496,18 +501,20 @@ function [Earth_final_r, Earth_final_v, ...
         [Earth_orbit_r(:,k), Earth_orbit_v(:,k)] = universalTOF(muSunCanonical, TOF(k), Earth_r, Earth_v);
         [Mars_orbit_r(:,k),  Mars_orbit_v(:,k)]  = universalTOF(muSunCanonical, TOF(k), Mars_r, Mars_v);
         [Jupiter_orbit_r(:,k), Jupiter_orbit_v(:,k)] = universalTOF(muSunCanonical, TOF(k), Jupiter_r, Jupiter_v);
+        [Neptune_orbit_r(:,k), Neptune_orbit_v(:,k)] = universalTOF(muSunCanonical, TOF(k), Neptune_r, Neptune_v);
 
         if nargin >= 11 && ~isempty(Spacecraft_r) && ~isempty(Spacecraft_v)
             [SC_orbit_r(:,k), SC_orbit_v(:,k)] = universalTOF(muSunCanonical, TOF(k), Spacecraft_r, Spacecraft_v);
         end
     end
 
-    makeThreeBodyPlot(Earth_r, Mars_r, Jupiter_r, Earth_orbit_r, Mars_orbit_r, ...
-        Jupiter_orbit_r, SC_orbit_r, Spacecraft_r, figNumber);
+    makeFourBodyPlot(Earth_r, Mars_r, Jupiter_r, Earth_orbit_r, Mars_orbit_r, ...
+        Jupiter_orbit_r,Neptune_orbit_r, SC_orbit_r, Spacecraft_r, figNumber);
 
     Earth_final_r = Earth_orbit_r(:,end); Earth_final_v = Earth_orbit_v(:,end);
     Mars_final_r = Mars_orbit_r(:,end);   Mars_final_v = Mars_orbit_v(:,end);
     Jupiter_final_r = Jupiter_orbit_r(:,end); Jupiter_final_v = Jupiter_orbit_v(:,end);
+    Neptune_final_r = Neptune_orbit_r(:,end); Neptune_final_v = Neptune_orbit_v(:,end);
 
     if any(SC_orbit_r(:))
         SC_final_r = SC_orbit_r(:,end);

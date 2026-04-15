@@ -287,6 +287,7 @@ jupiterVinf_kms = (SC_final_v - Jupiter_final_v) * AU_TU_to_kms;
 jupiterArrivalDeltaV_kms = deltavforcirculartohyperbolic( ...
     jupiterParkingOrbitAlt_km, Jupiter, jupiterVinf_kms);
 
+%% Jupiter Flyby
 [jupiterTurnAngle_rad, jupiterVinfOut_kms, jupiterVinfIn_kms, scAfterjupiterFlyby_v] = ...
     hyperbolicturnangle(SC_final_v, Jupiter_final_v, AU_TU_to_kms, ...
     jupiterFlybyAltitude_km, Jupiter, Sun, AU_to_km);
@@ -325,13 +326,12 @@ fprintf('Total mission delta-V [km/s]: %g\n', totalMissionDeltaV_kms);
 plot_full_mission_3d( ...
     earthDepart_r, earthDepart_v, ...                  % Earth at launch
     marsDepart_r, marsDepart_v, ...                    % Mars at launch epoch
-    Jupiter_departure_r, Jupiter_departure_v, ...      % Jupiter at launch epoch
-    ...
+    Jupiter_departure_r, Jupiter_departure_v,... 
+    Neptune_departure_r, Neptune_departure_v,...      % Jupiter at launch epoch
     earthDepart_r, transfer1_v1, transfer1_TOF_TU, ...            % Leg 1: Earth -> Mars
     marsArrival_r, scAfterMarsFlyby_v, marsToDSM_TOF_TU, ...      % Leg 2: Mars -> DSM
     spacecraftAtDSM_r, transfer3_v1, DSMtoEarth_TOF_TU, ...       % Leg 3: DSM -> Earth
     transfer3_r2, scAfterEarthFlyby_v, EarthToJupiter_TOF_TU, ... % Leg 4: Earth -> Jupiter
-    ...
     1000,5);
 %% ========================================================================
 % RESULTS TABLES FOR REPORT
