@@ -386,6 +386,35 @@ deltaVSummaryTable = table( ...
 
 disp('================ TOF and Delta-V Summary ================')
 disp(deltaVSummaryTable)
+
+%% Part E
+flybyNames = ["Mars Flyby"; "Earth Flyby"];
+marsPreFlybyHelio_v_kms  = transfer1_v2 * AU_TU_to_kms;         % spacecraft heliocentric velocity before Mars flyby
+marsPostFlybyHelio_v_kms = scAfterMarsFlyby_v * AU_TU_to_kms;   % spacecraft heliocentric velocity after Mars flyby
+earthPreFlybyHelio_v_kms  = transfer3_v2 * AU_TU_to_kms;        % spacecraft heliocentric velocity before Earth flyby
+earthPostFlybyHelio_v_kms = scAfterEarthFlyby_v * AU_TU_to_kms; % spacecraft heliocentric velocity after Earth flyby
+turnAngles_deg = [rad2deg(marsTurnAngle_rad);
+                  rad2deg(earthTurnAngle_rad)];
+
+preV = [marsPreFlybyHelio_v_kms(:)';
+        earthPreFlybyHelio_v_kms(:)'];
+
+postV = [marsPostFlybyHelio_v_kms(:)';
+         earthPostFlybyHelio_v_kms(:)'];
+
+flybyTable = table( ...
+    flybyNames, ...
+    turnAngles_deg, ...
+    preV(:,1), preV(:,2), preV(:,3), ...
+    postV(:,1), postV(:,2), postV(:,3), ...
+    'VariableNames', {'Flyby','TurnAngle_deg', ...
+    'PreVx_kms','PreVy_kms','PreVz_kms', ...
+    'PostVx_kms','PostVy_kms','PostVz_kms'});
+
+disp('================ Flyby Summary ================')
+disp(flybyTable)
+
+
 %% ========================================================================
 %  LOCAL PLOTTING FUNCTIONS
 %  ========================================================================
