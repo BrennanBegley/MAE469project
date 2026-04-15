@@ -148,17 +148,25 @@ transfer1_TOF_TU=(marsarivaltime-departureJulianDate)/58.13;
 marsToDSM_TOF_TU     = 50  / solarTU_days;  % Mars flyby -> DSM
 DSMtoEarth_TOF_TU    = 400/ solarTU_days;  % DSM -> Earth flyby
 EarthToJupiter_TOF_TU = 740 / solarTU_days; % Earth flyby -> Jupiter
+JupiterToDSM_TOF_TU=800 / solarTU_days; % Jupiter flyby -> DSM
+DSMToNeptune_TOF_TU=800 / solarTU_days; % DSM -> Neptune
+
 
 earthParkingOrbitAlt_km   = 500;
 marsFlybyAltitude_km      = 100;
 earthFlybyAltitude_km     = 100;
 jupiterParkingOrbitAlt_km = 10000;
+jupiterFlybyAltitude_km= 10000;
 useShortWayTransfer       = 0;
 useShortWayTransferDSM=1;
+neptuneParkingOrbitAlt_km= 2000
 
 % Jupiter state at the chosen Earth departure date.
 [Jupiter_departure_r, Jupiter_departure_v] = universalTOF( ...
     muSunCanonical, departureFromJ2000_TU, jupiterJ2000_r, jupiterJ2000_v);
+% Neptune state at the chosen Earth departure date.
+[Neptune_departure_r, Neptune_departure_v] = universalTOF( ...
+    muSunCanonical, departureFromJ2000_TU, neptuneJ2000_r, neptuneJ2000_v);
 
 %% Leg 1: Earth departure to Mars flyby
 [earthDepart_r, earthDepart_v, marsDepart_r, marsDepart_v, ...
@@ -275,9 +283,25 @@ fprintf('True anomaly [deg]: %g\n', rad2deg(transfer4_trueAnom));
     plotStart_TU, EarthToJupiter_TOF_TU, plotResolution, ...
     scBeforeEarthFlyby_r, scAfterEarthFlyby_v, 4);
 jupiterVinf_kms = (SC_final_v - Jupiter_final_v) * AU_TU_to_kms;
+
 jupiterArrivalDeltaV_kms = deltavforcirculartohyperbolic( ...
     jupiterParkingOrbitAlt_km, Jupiter, jupiterVinf_kms);
 
+[jupiterTurnAngle_rad, jupiterVinfOut_kms, jupiterVinfIn_kms, scAfterjupiterFlyby_v] = ...
+    hyperbolicturnangle(SC_final_v, Jupiter_final_v, AU_TU_to_kms, ...
+    jupiterFlybyAltitude_km, Jupiter, Sun, AU_to_km);
+
+
+[transfer5_a, transfer5_eVec, transfer5_e, transfer5_i, ...
+    transfer5_RAAN, transfer5_argPeri, transfer5_trueAnom] = ...
+    orbitalelementscalc(SC_final_r, scAfterjupiterFlyby_v, muSunCanonical);
+
+[earthAfterFlybyPlot_r, earthAfterFlybyPlot_v, marsAfterFlybyPlot_r, ...
+    marsAfterFlybyPlot_v, jupiterAfterFlybyPlot_r, jupiterAfterFlybyPlot_v, ...
+    scBeforeEarthFlyby_r, scBeforeEarthFlyby_v] = ...
+    planet_plotmarssmall(earthAfterDSM_r, earthAfterDSM_v, marsAfterDSM_r, ...
+    marsAfterDSM_v, jupiterAfterDSM_r, jupiterAfterDSM_v, plotStart_TU, ...
+    DSMtoEarth_TOF_TU, plotResolution, scAfterDSM_r, transfer3_v1, 3);
 totalMissionDeltaV_kms = departureDeltaV_kms + DSM_deltaV_kms + jupiterArrivalDeltaV_kms;
 
 fprintf('\n--- Jupiter Arrival ---\n');
@@ -307,8 +331,6 @@ plot_full_mission_3d( ...
     transfer3_r2, scAfterEarthFlyby_v, EarthToJupiter_TOF_TU, ... % Leg 4: Earth -> Jupiter
     ...
     1000,5);
-% Neptune Flyby
-
 %% ========================================================================
 % RESULTS TABLES FOR REPORT
 % ========================================================================
@@ -443,11 +465,12 @@ function [Earth_final_r, Earth_final_v, ...
     end
 end
 
+
 function [Earth_final_r, Earth_final_v, ...
           Mars_final_r, Mars_final_v, ...
-          Jupiter_final_r, Jupiter_final_v, ...
+          Jupiter_final_r, Jupiter_final_v,Neptune_final_r, Neptune_final_v, ...
           SC_final_r, SC_final_v] = ...
-          planet_plotmarssmall(Earth_r, Earth_v, Mars_r, Mars_v, ...
+          planet_plotNeptunesmall(Earth_r, Earth_v, Mars_r, Mars_v, ...
           Jupiter_r, Jupiter_v, Planet_TOF_initial, Planet_TOF_final, ...
           Planet_TOF_res, Spacecraft_r, Spacecraft_v, figNumber)
 % Same plotting helper as above, but allows caller to choose figure number.
@@ -495,8 +518,8 @@ function [Earth_final_r, Earth_final_v, ...
     end
 end
 
-function makeThreeBodyPlot(Earth_r, Mars_r, Jupiter_r, Earth_orbit_r, Mars_orbit_r, ...
-    Jupiter_orbit_r, SC_orbit_r, Spacecraft_r, figNumber)
+function makeFourBodyPlot(Earth_r, Mars_r, Jupiter_r, Earth_orbit_r, Mars_orbit_r, ...
+    Jupiter_orbit_r, Neptune_orbit_r, SC_orbit_r, Spacecraft_r, figNumber)
 % Shared plotting utility used by both local plotting functions.
 
     figure(figNumber)
@@ -510,6 +533,7 @@ function makeThreeBodyPlot(Earth_r, Mars_r, Jupiter_r, Earth_orbit_r, Mars_orbit
     earthColor = [0.2, 0.6, 1.0];
     marsColor = [1.0, 0.5, 0.2];
     jupiterColor = [1.0, 0.85, 0.7];
+    NeptuneColor= [0.1, 0.6, 1.0];
     orbitColor = [0.7, 0.7, 0.7];
     scColor = [1.0, 0.2, 0.2];
     finalMarkerColor = [0.9, 0.9, 0.9];
@@ -519,10 +543,11 @@ function makeThreeBodyPlot(Earth_r, Mars_r, Jupiter_r, Earth_orbit_r, Mars_orbit
     plot3(ax, Earth_r(1), Earth_r(2), Earth_r(3), 'o', 'MarkerFaceColor', earthColor, 'MarkerEdgeColor', earthColor, 'DisplayName', 'Earth')
     plot3(ax, Mars_r(1), Mars_r(2), Mars_r(3), 'o', 'MarkerFaceColor', marsColor, 'MarkerEdgeColor', marsColor, 'DisplayName', 'Mars')
     plot3(ax, Jupiter_r(1), Jupiter_r(2), Jupiter_r(3), 'o', 'MarkerFaceColor', jupiterColor, 'MarkerEdgeColor', jupiterColor, 'DisplayName', 'Jupiter')
+    plot3(ax, Jupiter_r(1), Jupiter_r(2), Jupiter_r(3), 'o', 'MarkerFaceColor', jupiterColor, 'MarkerEdgeColor', jupiterColor, 'DisplayName', 'Jupiter')
 
     plot3(ax, Earth_orbit_r(1,:), Earth_orbit_r(2,:), Earth_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility', 'off')
     plot3(ax, Mars_orbit_r(1,:), Mars_orbit_r(2,:), Mars_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility', 'off')
-    plot3(ax, Jupiter_orbit_r(1,:), Jupiter_orbit_r(2,:), Jupiter_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility', 'off')
+    plot3(ax, Neptune_orbit_r(1,:), Neptune_orbit_r(2,:), Neptune_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility', 'off')
 
     if any(SC_orbit_r(:))
         plot3(ax, SC_orbit_r(1,:), SC_orbit_r(2,:), SC_orbit_r(3,:), '-', 'Color', scColor, 'LineWidth', 1.5, 'DisplayName', 'Spacecraft')
@@ -534,6 +559,7 @@ function makeThreeBodyPlot(Earth_r, Mars_r, Jupiter_r, Earth_orbit_r, Mars_orbit
     plot3(ax, Earth_orbit_r(1,end), Earth_orbit_r(2,end), Earth_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
     plot3(ax, Mars_orbit_r(1,end), Mars_orbit_r(2,end), Mars_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
     plot3(ax, Jupiter_orbit_r(1,end), Jupiter_orbit_r(2,end), Jupiter_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
+    plot3(ax, Neptune_orbit_r(1,end), Neptune_orbit_r(2,end), Jupiter_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
 
     legend(ax, 'TextColor', [0.95 0.95 0.95], 'Color', [0.12 0.12 0.12])
     title(ax, 'Solar System (Earth, Mars, Jupiter)', 'Color', [0.95 0.95 0.95])
@@ -648,3 +674,105 @@ function [bestTOF_days, bestTOF_TU, bestSeparation_AU, ...
 end
 
 
+function [Earth_final_r, Earth_final_v, ...
+          Mars_final_r, Mars_final_v, ...
+          Jupiter_final_r, Jupiter_final_v, ...
+          SC_final_r, SC_final_v] = ...
+          planet_plotmarssmall(Earth_r, Earth_v, Mars_r, Mars_v, ...
+          Jupiter_r, Jupiter_v, Planet_TOF_initial, Planet_TOF_final, ...
+          Planet_TOF_res, Spacecraft_r, Spacecraft_v, figNumber)
+% Same plotting helper as above, but allows caller to choose figure number.
+
+    figure(figNumber)
+    clf
+    set(gcf, 'Color', [0.06 0.06 0.06]);
+
+    muSunCanonical = 1;
+    TOF = linspace(Planet_TOF_initial, Planet_TOF_final, Planet_TOF_res);
+
+    Earth_orbit_r   = zeros(3, length(TOF));
+    Mars_orbit_r    = zeros(3, length(TOF));
+    Jupiter_orbit_r = zeros(3, length(TOF));
+    SC_orbit_r      = zeros(3, length(TOF));
+
+    Earth_orbit_v   = zeros(3, length(TOF));
+    Mars_orbit_v    = zeros(3, length(TOF));
+    Jupiter_orbit_v = zeros(3, length(TOF));
+    SC_orbit_v      = zeros(3, length(TOF));
+
+    for k = 1:length(TOF)
+        [Earth_orbit_r(:,k), Earth_orbit_v(:,k)] = universalTOF(muSunCanonical, TOF(k), Earth_r, Earth_v);
+        [Mars_orbit_r(:,k),  Mars_orbit_v(:,k)]  = universalTOF(muSunCanonical, TOF(k), Mars_r, Mars_v);
+        [Jupiter_orbit_r(:,k), Jupiter_orbit_v(:,k)] = universalTOF(muSunCanonical, TOF(k), Jupiter_r, Jupiter_v);
+
+        if nargin >= 11 && ~isempty(Spacecraft_r) && ~isempty(Spacecraft_v)
+            [SC_orbit_r(:,k), SC_orbit_v(:,k)] = universalTOF(muSunCanonical, TOF(k), Spacecraft_r, Spacecraft_v);
+        end
+    end
+
+    makeThreeBodyPlot(Earth_r, Mars_r, Jupiter_r, Earth_orbit_r, Mars_orbit_r, ...
+        Jupiter_orbit_r, SC_orbit_r, Spacecraft_r, figNumber);
+
+    Earth_final_r = Earth_orbit_r(:,end); Earth_final_v = Earth_orbit_v(:,end);
+    Mars_final_r = Mars_orbit_r(:,end);   Mars_final_v = Mars_orbit_v(:,end);
+    Jupiter_final_r = Jupiter_orbit_r(:,end); Jupiter_final_v = Jupiter_orbit_v(:,end);
+
+    if any(SC_orbit_r(:))
+        SC_final_r = SC_orbit_r(:,end);
+        SC_final_v = SC_orbit_v(:,end);
+    else
+        SC_final_r = [];
+        SC_final_v = [];
+    end
+end
+function makeThreeBodyPlot(Earth_r, Mars_r, Jupiter_r, Earth_orbit_r, Mars_orbit_r, ...
+    Jupiter_orbit_r, SC_orbit_r, Spacecraft_r, figNumber)
+% Shared plotting utility used by both local plotting functions.
+
+    figure(figNumber)
+    ax = axes('Parent', gcf, ...
+        'Color', [0.03 0.03 0.03], ...
+        'XColor', [0.9 0.9 0.9], 'YColor', [0.9 0.9 0.9], ...
+        'ZColor', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
+    hold(ax, 'on')
+
+    sunColor = [1.0, 0.85, 0.0];
+    earthColor = [0.2, 0.6, 1.0];
+    marsColor = [1.0, 0.5, 0.2];
+    jupiterColor = [1.0, 0.85, 0.7];
+    orbitColor = [0.7, 0.7, 0.7];
+    scColor = [1.0, 0.2, 0.2];
+    finalMarkerColor = [0.9, 0.9, 0.9];
+
+    plot3(ax, 0, 0, 0, 'o', 'MarkerFaceColor', sunColor, 'MarkerEdgeColor', sunColor, 'MarkerSize', 8, 'DisplayName', 'Sun')
+
+    plot3(ax, Earth_r(1), Earth_r(2), Earth_r(3), 'o', 'MarkerFaceColor', earthColor, 'MarkerEdgeColor', earthColor, 'DisplayName', 'Earth')
+    plot3(ax, Mars_r(1), Mars_r(2), Mars_r(3), 'o', 'MarkerFaceColor', marsColor, 'MarkerEdgeColor', marsColor, 'DisplayName', 'Mars')
+    plot3(ax, Jupiter_r(1), Jupiter_r(2), Jupiter_r(3), 'o', 'MarkerFaceColor', jupiterColor, 'MarkerEdgeColor', jupiterColor, 'DisplayName', 'Jupiter')
+
+    plot3(ax, Earth_orbit_r(1,:), Earth_orbit_r(2,:), Earth_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility', 'off')
+    plot3(ax, Mars_orbit_r(1,:), Mars_orbit_r(2,:), Mars_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility', 'off')
+    plot3(ax, Jupiter_orbit_r(1,:), Jupiter_orbit_r(2,:), Jupiter_orbit_r(3,:), 'Color', orbitColor, 'LineWidth', 1, 'HandleVisibility', 'off')
+
+    if any(SC_orbit_r(:))
+        plot3(ax, SC_orbit_r(1,:), SC_orbit_r(2,:), SC_orbit_r(3,:), '-', 'Color', scColor, 'LineWidth', 1.5, 'DisplayName', 'Spacecraft')
+        plot3(ax, Spacecraft_r(1), Spacecraft_r(2), Spacecraft_r(3), 's', 'MarkerFaceColor', scColor, 'MarkerEdgeColor', scColor, 'DisplayName', 'SC Start')
+        SC_final_r = SC_orbit_r(:,end);
+        plot3(ax, SC_final_r(1), SC_final_r(2), SC_final_r(3), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'MarkerSize', 8, 'LineWidth', 1.2, 'DisplayName', 'SC Final')
+    end
+
+    plot3(ax, Earth_orbit_r(1,end), Earth_orbit_r(2,end), Earth_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
+    plot3(ax, Mars_orbit_r(1,end), Mars_orbit_r(2,end), Mars_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
+    plot3(ax, Jupiter_orbit_r(1,end), Jupiter_orbit_r(2,end), Jupiter_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
+
+    legend(ax, 'TextColor', [0.95 0.95 0.95], 'Color', [0.12 0.12 0.12])
+    title(ax, 'Solar System (Earth, Mars, Jupiter)', 'Color', [0.95 0.95 0.95])
+    xlabel(ax, 'x (AU)', 'Color', [0.95 0.95 0.95])
+    ylabel(ax, 'y (AU)', 'Color', [0.95 0.95 0.95])
+    zlabel(ax, 'z (AU)', 'Color', [0.95 0.95 0.95])
+    axis(ax, 'vis3d')
+    daspect(ax, [1 1 1])
+    grid(ax, 'on')
+    view(ax, 3)
+    hold(ax, 'off')
+end

@@ -2,12 +2,12 @@ function plot_full_mission_3d( ...
     Earth_dep_r, Earth_dep_v, ...
     Mars_dep_r, Mars_dep_v, ...
     Jupiter_dep_r, Jupiter_dep_v, Neptune_dep_r, Neptune_dep_v,...
+
     SC_leg1_r0, SC_leg1_v0, TOF_leg1, ...
     SC_leg2_r0, SC_leg2_v0, TOF_leg2, ...
     SC_leg3_r0, SC_leg3_v0, TOF_leg3, ...
     SC_leg4_r0, SC_leg4_v0, TOF_leg4, ...
-    SC_leg5_r0, SC_leg5_v0, TOF_leg5, ...
-    SC_leg6_r0, SC_leg6_v0, TOF_leg6, ...
+    SC_leg5_r0, SC_leg5_v0, TOF_leg, ...
     nPoints,figurenumber)
 % PLOT_FULL_MISSION_3D
 % Plots the full interplanetary mission in 3D:
@@ -51,7 +51,7 @@ function plot_full_mission_3d( ...
     % -----------------------------
     % Total mission duration
     % -----------------------------
-    totalTOF = TOF_leg1 + TOF_leg2 + TOF_leg3 + TOF_leg4+TOF_leg5+TOF_leg6;
+    totalTOF = TOF_leg1 + TOF_leg2 + TOF_leg3 + TOF_leg4+TOF_leg5;
     tPlanet = linspace(0, totalTOF, nPoints);
 
     % -----------------------------
@@ -80,7 +80,6 @@ function plot_full_mission_3d( ...
     t3 = linspace(0, TOF_leg3, nPoints);
     t4 = linspace(0, TOF_leg4, nPoints);
     t5 = linspace(0, TOF_leg5, nPoints);
-    t6 = linspace(0, TOF_leg5, nPoints);
 
     % -----------------------------
     % Preallocate spacecraft trajectories
@@ -90,7 +89,6 @@ function plot_full_mission_3d( ...
     SC3_r = zeros(3, nPoints);
     SC4_r = zeros(3, nPoints);
     SC5_r = zeros(3, nPoints);
-    SC6_r = zeros(3, nPoints);
 
     % -----------------------------
     % Propagate spacecraft leg 1
@@ -123,14 +121,9 @@ function plot_full_mission_3d( ...
     % Propagate spacecraft leg 5
     % -----------------------------
     for k = 1:nPoints
-        [SC5_r(:,k), ~] = universalTOF(sunMu, t5(k), SC_leg5_r0, SC_leg5_v0);
+        [SC4_r(:,k), ~] = universalTOF(sunMu, t5(k), SC_leg5_r0, SC_leg5_v0);
     end
-     % -----------------------------
-    % Propagate spacecraft leg 6
-    % -----------------------------
-    for k = 1:nPoints
-        [SC6_r(:,k), ~] = universalTOF(sunMu, t6(k), SC_leg6_r0, SC_leg6_v0);
-    end
+
 
     % -----------------------------
     % Event locations
@@ -139,9 +132,8 @@ function plot_full_mission_3d( ...
     Mars_flyby      = SC1_r(:,end);
     DSM_point       = SC2_r(:,end);
     Earth_flyby     = SC3_r(:,end);
-    Jupiter_flyby = SC4_r(:,end);
-    DSM_point = SC5_r(:,end);
-    Neptune_arival=SC6_r(:,end);
+    Jupiter_arrival = SC4_r(:,end);
+
     % -----------------------------
     % Plot setup
     % -----------------------------
