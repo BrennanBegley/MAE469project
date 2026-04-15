@@ -148,7 +148,7 @@ transfer1_TOF_TU=(marsarivaltime-departureJulianDate)/58.13;
 marsToDSM_TOF_TU     = 50  / solarTU_days;  % Mars flyby -> DSM
 DSMtoEarth_TOF_TU    = 400/ solarTU_days;  % DSM -> Earth flyby
 EarthToJupiter_TOF_TU = 740 / solarTU_days; % Earth flyby -> Jupiter
-JupiterToDSM_TOF_TU=1000 / solarTU_days; % Jupiter flyby -> DSM
+JupiterToDSM_TOF_TU=700 / solarTU_days; % Jupiter flyby -> DSM
 DSMToNeptune_TOF_TU=800 / solarTU_days; % DSM -> Neptune
 
 
@@ -156,7 +156,7 @@ earthParkingOrbitAlt_km   = 500;
 marsFlybyAltitude_km      = 100;
 earthFlybyAltitude_km     = 100;
 jupiterParkingOrbitAlt_km = 10000;
-jupiterFlybyAltitude_km= 10000;
+jupiterFlybyAltitude_km= 100;
 useShortWayTransfer       = 0;
 useShortWayTransferDSM=1;
 neptuneParkingOrbitAlt_km= 21000
@@ -298,21 +298,29 @@ jupiterArrivalDeltaV_kms = deltavforcirculartohyperbolic( ...
 [transfer5_a, transfer5_eVec, transfer5_e, transfer5_i, ...
     transfer5_RAAN, transfer5_argPeri, transfer5_trueAnom] = ...
     orbitalelementscalc(SC_final_r, scAfterjupiterFlyby_v, muSunCanonical);
+fprintf('\n--- Leg 5 Orbit After Jupiter Flyby ---\n');
+fprintf('Semi-major axis [AU]: %g\n', transfer5_a);
+fprintf('Eccentricity vector:\n'); disp(transfer5_eVec);
+fprintf('Eccentricity magnitude: %g\n', transfer5_e);
+fprintf('Inclination [deg]: %g\n', rad2deg(transfer5_i));
+fprintf('RAAN [deg]: %g\n', rad2deg(transfer5_RAAN));
+fprintf('Argument of periapsis [deg]: %g\n', rad2deg(transfer5_argPeri));
+fprintf('True anomaly [deg]: %g\n', rad2deg(transfer5_trueAnom));
 
 [Earth_AfterJ_r, Earth__AfterJ_v, ...
           Mars__AfterJ_r, Mars__AfterJ_v, ...
           Jupiter__AfterJ_r, Jupiter__AfterJ_v,Neptune__AfterJ_r, Neptune__AfterJ_v, ...
-          SC__AfterJ_r, SC__AfterJ_v] = ...
-          planet_plotNeptunesmall(Earth_final_r, Earth_final_v, Mars_final_r, Mars_final_v, ...
+          SC__AfterJ_r, SC__AfterJ_v]  ...
+          =planet_plotNeptunesmall(Earth_final_r, Earth_final_v, Mars_final_r, Mars_final_v, ...
          Jupiter_final_r, Jupiter_final_v, Neptune_final_r, Neptune_final_v,  plotStart_TU, JupiterToDSM_TOF_TU, ...
           plotResolution, SC_final_r, SC_final_v, 8)
 
-[earthAfterFlybyPlot_r, earthAfterFlybyPlot_v, marsAfterFlybyPlot_r, ...
-    marsAfterFlybyPlot_v, jupiterAfterFlybyPlot_r, jupiterAfterFlybyPlot_v, neptuneAfterFlybyPlot_r, neptuneAfterFlybyPlot_v, ...
+[earthAfterDSM2, earthAfterFlybyPlot2_v, marsAfterFlybyPlot2_r, ...
+    marsAfterFlybyPlot2_v, jupiterAfterFlybyPlot2_r, jupiterAfterFlybyPlot2_v, neptuneAfterFlybyPlot2_r, neptuneAfterFlybyPlot2_v, ...
     scBeforeEarthFlyby_r, scBeforeEarthFlyby_v] = ...
     planet_plotNeptunesmall(earthAfterDSM_r, earthAfterDSM_v, marsAfterDSM_r, ...
     marsAfterDSM_v, jupiterAfterDSM_r, jupiterAfterDSM_v, neptuneAfterDSM_r, neptuneAfterDSM_v,plotStart_TU, ...
-    DSMtoEarth_TOF_TU, plotResolution, scAfterDSM_r, transfer3_v1, 6);
+    DSMtoEarth_TOF_TU, plotResolution, scAfterDSM_r, transfer3_v1, 10);
 
 
 [earthAtDSM2_r, earthAtDSM2_v] = universalTOF(muSunCanonical, JupiterToDSM_TOF_TU, earthAfterLeg1_r, earthAfterLeg1_v);
@@ -321,11 +329,47 @@ jupiterArrivalDeltaV_kms = deltavforcirculartohyperbolic( ...
 [MarsAtDSM2_r, MarsAtDSM2_v] = universalTOF(muSunCanonical,  JupiterToDSM_TOF_TU, marsAfterLeg1_r, marsAfterLeg1_v);
 [NeptuneAtDSM2_r, NeptuneAtDSM2_v] = universalTOF(muSunCanonical,  JupiterToDSM_TOF_TU, neptuneAfterLeg1_r, neptuneAfterLeg1_v);
 
+[transfer6_v1, transfer6_v2, transfer6Struct, transfer6_r1, transfer6_r2] = ...
+    gaussspeedsandtransferorbitorbitalelements(spacecraftAtDSM2_r, NeptuneAtDSM2_r, ...
+    DSMToNeptune_TOF_TU , muSunCanonical, useShortWayTransferDSM);
+[transfer6_a, transfer6_eVec, transfer6_e, transfer6_i, ...
+    transfer6_RAAN, transfer6_argPeri, transfer6_trueAnom] = ...
+    orbitalelementscalc(spacecraftAtDSM2_r, spacecraftAtDSM2_v, muSunCanonical);
+fprintf('\n--- Leg 6 Orbit After Earth Flyby ---\n');
+fprintf('Semi-major axis [AU]: %g\n', transfer6_a);
+fprintf('Eccentricity vector:\n'); disp(transfer6_eVec);
+fprintf('Eccentricity magnitude: %g\n', transfer6_e);
+fprintf('Inclination [deg]: %g\n', rad2deg(transfer6_i));
+fprintf('RAAN [deg]: %g\n', rad2deg(transfer6_RAAN));
+fprintf('Argument of periapsis [deg]: %g\n', rad2deg(transfer6_argPeri));
+fprintf('True anomaly [deg]: %g\n', rad2deg(transfer6_trueAnom));
+
 totalMissionDeltaV_kms = departureDeltaV_kms + DSM_deltaV_kms + jupiterArrivalDeltaV_kms;
 
 fprintf('\n--- Jupiter Arrival ---\n');
 fprintf('Jupiter hyperbolic excess velocity [km/s]:\n'); disp(jupiterVinf_kms);
 fprintf('Jupiter arrival delta-V [km/s]: %g\n', jupiterArrivalDeltaV_kms);
+
+
+
+
+
+fprintf('\n--- Leg 6: DSM to Neptune  ---\n');
+fprintf('Velocity at DSM [AU/TU]: [%g, %g, %g]\n', transfer6_v1);
+fprintf('Velocity at Earth flyby [AU/TU]: [%g, %g, %g]\n', transfer6_v2);
+fprintf('Semi-major axis [AU]: %g\n', transfer6Struct.a);
+fprintf('Eccentricity: %g\n', transfer6Struct.e);
+fprintf('Inclination [deg]: %g\n', rad2deg(transfer6Struct.inc));
+fprintf('RAAN [deg]: %g\n', rad2deg(transfer6Struct.OMEGA));
+fprintf('Argument of periapsis [deg]: %g\n', rad2deg(transfer6Struct.omega));
+fprintf('True anomaly at r1 [deg]: %g\n', rad2deg(transfer6Struct.theta));
+
+[earthAfterFlybyPlot2_r, earthAfterFlybyPlot2_v, marsAfterFlybyPlot2_r, ...
+    marsAfterFlybyPlot2_v, jupiterAfterFlybyPlot2_r, jupiterAfterFlybyPlot2_v, neptuneAfterFlybyPlo2t_r, neptuneAfterFlybyPlot2_v,...
+    scBeforeEarthFlyby_r, scBeforeEarthFlyby_v] = ...
+    planet_plotNeptunesmall(earthAfterDSM2_r, earthAfterDSM2_v, marsAfterDSM2_r, ...
+    marsAfterDSM2_v, jupiterAfterDSM2_r, jupiterAfterDSM2_v, neptuneAfterDSM2_r, neptuneAfterDSM2_v,plotStart_TU, ...
+   DSMToNeptune_TOF_TU, plotResolution, scAfterDSM2_r, transfer6_v1, 9);
 
 fprintf('\n--- Mission Summary ---\n');
 fprintf('Leg 1 TOF Earth->Mars [TU]: %g\n', transfer1_TOF_TU);
@@ -336,7 +380,6 @@ fprintf('Earth departure delta-V [km/s]: %g\n', departureDeltaV_kms);
 fprintf('DSM delta-V [km/s]: %g\n', DSM_deltaV_kms);
 fprintf('Jupiter arrival delta-V [km/s]: %g\n', jupiterArrivalDeltaV_kms);
 fprintf('Total mission delta-V [km/s]: %g\n', totalMissionDeltaV_kms);
-
 
 %% ========================================================================
 % FULL MISSION 3D PLOT
@@ -588,7 +631,7 @@ function makeFourBodyPlot(Earth_r, Mars_r, Jupiter_r, Neptune_r, Earth_orbit_r, 
     plot3(ax, Earth_orbit_r(1,end), Earth_orbit_r(2,end), Earth_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
     plot3(ax, Mars_orbit_r(1,end), Mars_orbit_r(2,end), Mars_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
     plot3(ax, Jupiter_orbit_r(1,end), Jupiter_orbit_r(2,end), Jupiter_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
-    plot3(ax, Neptune_orbit_r(1,end), Neptune_orbit_r(2,end), Jupiter_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
+    plot3(ax, Neptune_orbit_r(1,end), Neptune_orbit_r(2,end), Neptune_orbit_r(3,end), 'd', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', finalMarkerColor, 'HandleVisibility', 'off')
 
     legend(ax, 'TextColor', [0.95 0.95 0.95], 'Color', [0.12 0.12 0.12])
     title(ax, 'Solar System (Earth, Mars, Jupiter)', 'Color', [0.95 0.95 0.95])

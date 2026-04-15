@@ -152,7 +152,7 @@ EarthToJupiter_TOF_TU = 740 / solarTU_days; % Earth flyby -> Jupiter
 earthParkingOrbitAlt_km   = 500;
 marsFlybyAltitude_km      = 100;
 earthFlybyAltitude_km     = 100;
-jupiterParkingOrbitAlt_km = 10000;
+jupiterParkingOrbitAlt_km = 100000;
 useShortWayTransfer       = 0;
 useShortWayTransferDSM=1;
 
